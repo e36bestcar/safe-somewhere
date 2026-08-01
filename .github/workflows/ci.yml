@@ -43,7 +43,6 @@ jobs:
     needs: secrets
     env:
       NEXT_PUBLIC_SITE_URL: https://www.safesomewhere.com
-      NODE_ENV: production
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -72,3 +71,5 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          NODE_ENV: production

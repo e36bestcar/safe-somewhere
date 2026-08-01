@@ -63,7 +63,7 @@ Platform quirk: HTTP `TRACE` is rejected by Next/undici before the proxy runs (t
 Do these in the Vercel project settings before public launch:
 
 1. **Deployment Protection** — protect preview deployments (password or Vercel Auth). *(SSO already: all_except_custom_domains)*
-2. **Web Application Firewall** — enable Vercel WAF / Attack Challenge Mode as needed.
+2. **Web Application Firewall** — Pro+ custom rules / IP blocks may be plan-gated. Hobby keeps automatic DDoS system mitigations on (do not pause). Know how to flip Attack Challenge Mode under abuse: `vercel firewall attack-mode enable --duration 1h --yes --scope whosjohn` (disables with `attack-mode disable`). Do **not** leave Attack Mode on permanently — it challenges every visitor.
 3. **Bot protection** — consider BotID / bot management if abuse appears.
 4. **Environment variables** — set `NEXT_PUBLIC_SITE_URL` to `https://www.safesomewhere.com` (Production).
 5. **Domains** — HTTPS only; enable HSTS preload only after domain is stable.
