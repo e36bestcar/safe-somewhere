@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import { Host_Grotesk, Six_Caps } from "next/font/google";
 import { headers } from "next/headers";
 import { getSiteUrl } from "@/lib/site-url";
@@ -87,7 +88,10 @@ export default async function RootLayout({
       lang="en"
       className={`${sixCaps.variable} ${hostGrotesk.variable} h-full`}
     >
-      <body className="min-h-full">{children}</body>
+      <body className="min-h-full">
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }

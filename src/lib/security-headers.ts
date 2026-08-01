@@ -14,15 +14,21 @@ export type SecurityHeader = { key: string; value: string };
  */
 export function buildContentSecurityPolicy(nonce: string): string {
   const isDev = process.env.NODE_ENV === "development";
+  // Prod Analytics loads from /_vercel/insights (same origin).
+  // Dev debug script + event posts use Vercel insight hosts.
+  const connectSrc = isDev
+    ? "connect-src 'self' https://va.vercel-scripts.com https://vitals.vercel-insights.com"
+    : "connect-src 'self' https://vitals.vercel-insights.com";
   return [
     "default-src 'self'",
     // Dev needs unsafe-eval for React debugging stacks (Next docs)
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""}`,
+    // + va.vercel-scripts.com for Analytics debug script
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval' https://va.vercel-scripts.com" : ""}`,
     // Tailwind / App Router inject style tags
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
     "font-src 'self'",
-    "connect-src 'self'",
+    connectSrc,
     "media-src 'self'",
     "object-src 'none'",
     "base-uri 'self'",

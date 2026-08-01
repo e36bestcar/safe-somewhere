@@ -47,6 +47,7 @@ Until then, treat reports via the project owner.
 | Dependabot | `.github/dependabot.yml` |
 | Visual lock | `visual-lock.sha256` · `scripts/verify-visual-lock.mjs` |
 | Install discipline on Vercel | `vercel.json` → `npm ci` |
+| Web Analytics | `@vercel/analytics` in `src/app/layout.tsx` |
 
 Accepted risk: `style-src 'unsafe-inline'` (Tailwind / App Router). Dev-only: `script-src 'unsafe-eval'` for React debug stacks.
 
