@@ -1,0 +1,9 @@
+# Prefer reviews from the repo owner on security-critical paths.
+* @e36bestcar
+
+/.github/ @e36bestcar
+/src/proxy.ts @e36bestcar
+/src/lib/security-headers.ts @e36bestcar
+/next.config.ts @e36bestcar
+/vercel.json @e36bestcar
+/public/.well-known/ @e36bestcar

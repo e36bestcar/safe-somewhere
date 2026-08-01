@@ -1,5 +1,5 @@
-Contact: mailto:security@safesomewhere.example
+Contact: https://github.com/e36bestcar/safe-somewhere/security/advisories/new
 Expires: 2027-07-30T00:00:00.000Z
 Preferred-Languages: en
-Canonical: https://safesomewhere.example/.well-known/security.txt
-Policy: https://safesomewhere.example/security
+Canonical: https://www.safesomewhere.com/.well-known/security.txt
+Policy: https://github.com/e36bestcar/safe-somewhere/blob/main/SECURITY.md
