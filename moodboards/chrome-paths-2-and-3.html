@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Safe-Somewhere - chrome paths 2 & 3</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500;600&family=Six+Caps&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: oklch(0.48 0.02 95);
+        --mx: 55%;
+        --my: 40%;
+        --angle: 125deg;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #0b0b0d;
+        color: #eee;
+        font-family: "Host Grotesk", system-ui, sans-serif;
+      }
+      header {
+        padding: 1.25rem clamp(1rem, 3vw, 2rem) 0.75rem;
+      }
+      header h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.15rem;
+        font-weight: 600;
+      }
+      header p {
+        margin: 0;
+        max-width: 46rem;
+        color: #9a9690;
+        font-size: 0.85rem;
+        line-height: 1.5;
+      }
+      .tabs {
+        display: flex;
+        gap: 0.4rem;
+        padding: 0 clamp(1rem, 3vw, 2rem) 0.75rem;
+        flex-wrap: wrap;
+      }
+      .tabs button {
+        appearance: none;
+        border: 1px solid rgb(255 255 255 / 0.12);
+        background: #161618;
+        color: #ccc;
+        font: inherit;
+        font-size: 0.78rem;
+        padding: 0.45rem 0.85rem;
+        border-radius: 999px;
+        cursor: pointer;
+      }
+      .tabs button.is-on {
+        border-color: #c9a0e8;
+        color: #e8d4ff;
+        background: #1c1524;
+      }
+      .panel {
+        display: none;
+        padding: 0 clamp(1rem, 3vw, 2rem) 2rem;
+      }
+      .panel.is-on {
+        display: block;
+      }
+      .stage {
+        position: relative;
+        isolation: isolate;
+        min-height: min(70vh, 620px);
+        overflow: hidden;
+        background: var(--bg);
+        border: 1px solid rgb(255 255 255 / 0.08);
+        cursor: crosshair;
+      }
+      .tex-matte,
+      .tex-grain,
+      .tex-vignette {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      .tex-matte {
+        opacity: 0.85;
+        filter: url(#matte-concrete);
+      }
+      .tex-grain {
+        opacity: 0.35;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        background-size: 220px;
+        mix-blend-mode: soft-light;
+      }
+      .tex-vignette {
+        background: radial-gradient(
+          120% 90% at 50% 40%,
+          transparent 20%,
+          rgb(0 0 0 / 0.35) 100%
+        );
+        mix-blend-mode: multiply;
+      }
+      .meta {
+        margin-top: 0.85rem;
+        max-width: 40rem;
+        font-size: 0.78rem;
+        color: #9a9690;
+        line-height: 1.45;
+      }
+      .meta strong {
+        color: #ddd;
+      }
+      .hint {
+        position: absolute;
+        right: 1rem;
+        bottom: 1rem;
+        z-index: 5;
+        font-size: 0.62rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgb(0 0 0 / 0.4);
+      }
+
+      /* ——— Path 2: Hybrid ——— */
+      .hybrid-stack {
+        position: absolute;
+        left: clamp(1.2rem, 4vw, 3rem);
+        top: 50%;
+        transform: translateY(-52%);
+        z-index: 2;
+      }
+      #bakeCanvas {
+        display: block;
+        width: min(92vw, 720px);
+        height: auto;
+        filter: drop-shadow(0 14px 4px rgb(20 0 40 / 0.4))
+          drop-shadow(0 40px 14px rgb(0 0 0 / 0.28));
+      }
+      .foil-sweep {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+          linear-gradient(
+            var(--angle),
+            transparent 42%,
+            rgb(255 255 255 / 0.42) 50%,
+            transparent 58%
+          ),
+          radial-gradient(
+            circle at var(--mx) var(--my),
+            oklch(0.82 0.08 300 / 0.28),
+            oklch(0.68 0.1 220 / 0.12) 40%,
+            transparent 62%
+          );
+        background-size: 180% 180%, 140% 140%;
+        background-position: var(--mx) var(--my), var(--mx) var(--my);
+        mix-blend-mode: soft-light;
+        opacity: 0.55;
+        filter: saturate(1.05);
+        -webkit-mask-image: none;
+        mask-image: none;
+        -webkit-mask-size: 100% 100%;
+        mask-size: 100% 100%;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+      }
+
+      /* ——— Path 3: WebGL ——— */
+      #glLive {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+        z-index: 2;
+        filter: drop-shadow(0 18px 6px rgb(20 0 40 / 0.38))
+          drop-shadow(0 48px 18px rgb(0 0 0 / 0.3));
+      }
+      .gl-fallback {
+        display: none;
+        position: absolute;
+        left: clamp(1.2rem, 4vw, 3rem);
+        top: 45%;
+        z-index: 2;
+        margin: 0;
+        font-family: "Six Caps", sans-serif;
+        font-size: clamp(3.5rem, 12vw, 7rem);
+        line-height: 0.88;
+        letter-spacing: 0.04em;
+        background: repeating-linear-gradient(
+          -18deg,
+          #1a0a24,
+          #f0e4ff 45%,
+          #1a0a24
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+    </style>
+  </head>
+  <body>
+    <svg width="0" height="0" aria-hidden style="position: absolute">
+      <defs>
+        <filter
+          id="matte-concrete"
+          x="0%"
+          y="0%"
+          width="100%"
+          height="100%"
+          color-interpolation-filters="sRGB"
+        >
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.75"
+            numOctaves="4"
+            seed="7"
+            result="noise"
+          />
+          <feDiffuseLighting
+            in="noise"
+            lighting-color="#ffffff"
+            surfaceScale="1.4"
+            result="light"
+          >
+            <feDistantLight azimuth="135" elevation="48" />
+          </feDiffuseLighting>
+          <feComponentTransfer in="light">
+            <feFuncR type="linear" slope="0.85" intercept="0.05" />
+            <feFuncG type="linear" slope="0.85" intercept="0.05" />
+            <feFuncB type="linear" slope="0.85" intercept="0.05" />
+          </feComponentTransfer>
+        </filter>
+      </defs>
+    </svg>
+
+    <header>
+      <h1>Chrome hone · sculpted amethyst metal</h1>
+      <p>
+        Reading this as: brand wordmark material for an ominous music
+        collective, Envato-sculpted purple chrome with foil only in the
+        catch-light. Locked concrete background untouched.
+        <strong>Path 3</strong> is the hone target (bevel + soft env + key
+        specular). Path 2 stays as the Photoshop-bake alternate. Hard-refresh.
+        Move the mouse on Path 3.
+      </p>
+    </header>
+
+    <div class="tabs">
+      <button type="button" data-tab="hybrid">2 · Hybrid (bake + foil)</button>
+      <button type="button" class="is-on" data-tab="webgl">
+        3 · Live WebGL metal
+      </button>
+    </div>
+
+    <section class="panel" id="panel-hybrid">
+      <div class="stage" id="stageHybrid">
+        <div class="tex-matte"></div>
+        <div class="tex-grain"></div>
+        <div class="tex-vignette"></div>
+        <div class="hybrid-stack" id="hybridStack">
+          <canvas id="bakeCanvas" width="1400" height="520"></canvas>
+          <div class="foil-sweep" id="foilSweep"></div>
+        </div>
+        <span class="hint">path 2 · move pointer</span>
+      </div>
+      <p class="meta">
+        <strong>How this maps to production:</strong> replace the canvas bake
+        with a PNG/WebP from the Envato PSD (or any PS chrome action) at 2x.
+        Keep the foil layer - that’s the live Pokémon-card light. Best of both:
+        Photoshop metal + interactive hologram.
+      </p>
+    </section>
+
+    <section class="panel is-on" id="panel-webgl">
+      <div class="stage" id="stageGl">
+        <div class="tex-matte"></div>
+        <div class="tex-grain"></div>
+        <div class="tex-vignette"></div>
+        <canvas id="glLive"></canvas>
+        <p class="gl-fallback">Safe<br />Somewhere</p>
+        <span class="hint">path 3 · move pointer</span>
+      </div>
+      <p class="meta">
+        <strong>Hone notes:</strong> wider Sobel bevel, soft ceiling/floor env
+        reflection, anisotropic specular stretch, foil gated to the highlight
+        only. No stripe fill. If it still reads flat, next dial is a real env
+        cubemap or a PS bake under Path 2.
+      </p>
+    </section>
+
+    <script>
+      const root = document.documentElement;
+
+      // Tabs
+      document.querySelectorAll(".tabs button").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document
+            .querySelectorAll(".tabs button")
+            .forEach((b) => b.classList.remove("is-on"));
+          document
+            .querySelectorAll(".panel")
+            .forEach((p) => p.classList.remove("is-on"));
+          btn.classList.add("is-on");
+          document
+            .getElementById("panel-" + btn.dataset.tab)
+            .classList.add("is-on");
+          if (btn.dataset.tab === "webgl") startGl();
+        });
+      });
+
+      function trackPointer(stage) {
+        stage.addEventListener("pointermove", (e) => {
+          const r = stage.getBoundingClientRect();
+          const x = (e.clientX - r.left) / r.width;
+          const y = (e.clientY - r.top) / r.height;
+          root.style.setProperty("--mx", (x * 100).toFixed(2) + "%");
+          root.style.setProperty("--my", (y * 100).toFixed(2) + "%");
+          root.style.setProperty(
+            "--angle",
+            (Math.atan2(y - 0.5, x - 0.5) * (180 / Math.PI) + 180).toFixed(1) +
+              "deg",
+          );
+          if (typeof glPointer === "function") glPointer(x, y);
+        });
+      }
+      trackPointer(document.getElementById("stageHybrid"));
+      trackPointer(document.getElementById("stageGl"));
+
+      /* ========== PATH 2: Bake chrome (PS stand-in) + foil mask ========== */
+      async function bakeChrome() {
+        await document.fonts.load('400 200px "Six Caps"');
+        const canvas = document.getElementById("bakeCanvas");
+        const ctx = canvas.getContext("2d");
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+
+        const lines = ["SAFE", "SOMEWHERE"];
+        const size = Math.min(h * 0.42, w * 0.2);
+        ctx.font = `400 ${size}px "Six Caps", sans-serif`;
+        ctx.textBaseline = "middle";
+        ctx.textAlign = "left";
+        const x0 = w * 0.04;
+        const y0 = h * 0.42;
+
+        function drawText(fillStyle, ox, oy, blur) {
+          ctx.save();
+          if (blur) ctx.filter = `blur(${blur}px)`;
+          ctx.fillStyle = fillStyle;
+          lines.forEach((t, i) => {
+            ctx.fillText(t, x0 + ox, y0 + i * size * 0.92 + oy);
+          });
+          ctx.restore();
+        }
+
+        // Deep cast (into bake — like PS drop shadow layer)
+        drawText("rgba(0,0,0,0.45)", 8, 18, 6);
+        drawText("rgba(0,0,0,0.35)", 4, 10, 2);
+
+        // Emboss dark / light offsets (PS bevel stand-in)
+        drawText("#050208", -3, 3, 0);
+        drawText("#050208", -2, 2, 0);
+        drawText("#e8d4ff", 2, -2, 0);
+        drawText("#ffffff", 1, -1, 0);
+
+        // Soft sculpted metal (avoid hard multi-stop WordArt bands)
+        const grad = ctx.createLinearGradient(0, y0 - size, 0, y0 + size * 1.35);
+        grad.addColorStop(0, "#3a2850");
+        grad.addColorStop(0.22, "#1a0e28");
+        grad.addColorStop(0.48, "#2e1838");
+        grad.addColorStop(0.72, "#10081c");
+        grad.addColorStop(1, "#080410");
+
+        drawText("rgba(70,40,110,0.22)", 0, 0, 12);
+
+        ctx.fillStyle = grad;
+        lines.forEach((t, i) => {
+          ctx.fillText(t, x0, y0 + i * size * 0.92);
+        });
+
+        // Soft ceiling/floor env (matches Path 3 language)
+        ctx.globalCompositeOperation = "source-atop";
+        const env = ctx.createLinearGradient(0, y0 - size * 0.9, 0, y0 + size * 1.4);
+        env.addColorStop(0, "rgba(200,180,230,0.28)");
+        env.addColorStop(0.35, "rgba(0,0,0,0)");
+        env.addColorStop(0.7, "rgba(0,0,0,0.18)");
+        env.addColorStop(1, "rgba(20,5,40,0.35)");
+        ctx.fillStyle = env;
+        ctx.fillRect(0, 0, w, h);
+
+        // Single specular rake (not rainbow stripes)
+        const spec = ctx.createLinearGradient(w * 0.1, 0, w * 0.75, h * 0.9);
+        spec.addColorStop(0.4, "rgba(255,255,255,0)");
+        spec.addColorStop(0.48, "rgba(255,255,255,0.62)");
+        spec.addColorStop(0.51, "rgba(230,210,255,0.22)");
+        spec.addColorStop(0.58, "rgba(255,255,255,0)");
+        ctx.fillStyle = spec;
+        ctx.fillRect(0, 0, w, h);
+
+        // Subtle cool bounce in highlight only
+        const bounce = ctx.createRadialGradient(
+          w * 0.35,
+          h * 0.35,
+          10,
+          w * 0.35,
+          h * 0.35,
+          w * 0.45,
+        );
+        bounce.addColorStop(0, "rgba(170,130,240,0.16)");
+        bounce.addColorStop(0.5, "rgba(90,160,230,0.06)");
+        bounce.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = bounce;
+        ctx.fillRect(0, 0, w, h);
+        ctx.globalCompositeOperation = "source-over";
+
+        // Fine brush (not grain soup)
+        ctx.globalCompositeOperation = "source-atop";
+        const img = ctx.getImageData(0, 0, w, h);
+        const d = img.data;
+        for (let i = 0; i < d.length; i += 16) {
+          const n = (Math.random() - 0.5) * 8;
+          d[i] = Math.min(255, Math.max(0, d[i] + n));
+          d[i + 1] = Math.min(255, Math.max(0, d[i + 1] + n));
+          d[i + 2] = Math.min(255, Math.max(0, d[i + 2] + n));
+        }
+        ctx.putImageData(img, 0, 0);
+        ctx.globalCompositeOperation = "source-over";
+
+        const foil = document.getElementById("foilSweep");
+        const url = canvas.toDataURL("image/png");
+        foil.style.webkitMaskImage = `url(${url})`;
+        foil.style.maskImage = `url(${url})`;
+        foil.style.webkitMaskSize = "100% 100%";
+        foil.style.maskSize = "100% 100%";
+      }
+
+      document.fonts.ready.then(bakeChrome);
+
+      /* ========== PATH 3: Live WebGL liquid metal ========== */
+      let glStarted = false;
+      let glPointer = null;
+
+      function startGl() {
+        if (glStarted) return;
+        glStarted = true;
+
+        const canvas = document.getElementById("glLive");
+        const fallback = document.querySelector(".gl-fallback");
+        const gl = canvas.getContext("webgl2", {
+          premultipliedAlpha: false,
+          alpha: true,
+        });
+        if (!gl) {
+          canvas.style.display = "none";
+          fallback.style.display = "block";
+          return;
+        }
+
+        const dpr = Math.min(devicePixelRatio || 1, 2);
+        const mask = document.createElement("canvas");
+        const mctx = mask.getContext("2d");
+        let pointer = [0.55, 0.4];
+
+        function resize() {
+          const r = canvas.parentElement.getBoundingClientRect();
+          canvas.width = Math.floor(r.width * dpr);
+          canvas.height = Math.floor(r.height * dpr);
+          gl.viewport(0, 0, canvas.width, canvas.height);
+          paintMask();
+          uploadMask();
+        }
+
+        function paintMask() {
+          mask.width = canvas.width;
+          mask.height = canvas.height;
+          mctx.clearRect(0, 0, mask.width, mask.height);
+
+          // Crisp glyphs → slight blur so Sobel bevels read as metal, not pixels
+          const tmp = document.createElement("canvas");
+          tmp.width = mask.width;
+          tmp.height = mask.height;
+          const t = tmp.getContext("2d");
+          t.fillStyle = "#fff";
+          t.textAlign = "left";
+          t.textBaseline = "middle";
+          const size = Math.min(mask.height * 0.36, mask.width * 0.2);
+          t.font = `400 ${size}px "Six Caps", sans-serif`;
+          const x = mask.width * 0.07;
+          const y = mask.height * 0.48;
+          t.fillText("SAFE", x, y - size * 0.42);
+          t.fillText("SOMEWHERE", x, y + size * 0.52);
+          mctx.filter = "blur(1.35px)";
+          mctx.drawImage(tmp, 0, 0);
+          mctx.filter = "none";
+        }
+
+        const vs = `#version 300 es
+        in vec2 a; void main(){ gl_Position=vec4(a,0.,1.); }`;
+        // Sculpted dark-amethyst chrome — soft env + bevel + key specular
+        // (no repeating stripe fill = no WordArt)
+        const fs = `#version 300 es
+        precision highp float;
+        uniform sampler2D uMask;
+        uniform vec2 uRes;
+        uniform float uTime;
+        uniform vec2 uPointer;
+        out vec4 o;
+
+        float sampleM(vec2 uv){
+          return texture(uMask, vec2(clamp(uv.x,0.,1.), 1.0 - clamp(uv.y,0.,1.))).a;
+        }
+
+        // Wider Sobel for smoother bevel (less stair-step)
+        vec3 bevelNormal(vec2 uv){
+          vec2 px = 2.25 / uRes;
+          float tl = sampleM(uv + vec2(-px.x,  px.y));
+          float  t = sampleM(uv + vec2( 0.0,  px.y));
+          float tr = sampleM(uv + vec2( px.x,  px.y));
+          float  l = sampleM(uv + vec2(-px.x,  0.0));
+          float  r = sampleM(uv + vec2( px.x,  0.0));
+          float bl = sampleM(uv + vec2(-px.x, -px.y));
+          float  b = sampleM(uv + vec2( 0.0, -px.y));
+          float br = sampleM(uv + vec2( px.x, -px.y));
+          float gx = -tl - 2.0*l - bl + tr + 2.0*r + br;
+          float gy = -bl - 2.0*b - br + tl + 2.0*t + tr;
+          return normalize(vec3(gx * 2.8, gy * 2.8, 0.78));
+        }
+
+        void main(){
+          vec2 uv = gl_FragCoord.xy / uRes;
+          float m = sampleM(uv);
+          if (m < 0.035) discard;
+
+          vec3 N = bevelNormal(uv);
+
+          // Key light from pointer; soft fill from upper-left garage lamp
+          vec3 Lp = normalize(vec3((uPointer - uv) * vec2(1.15, 1.0), 0.62));
+          vec3 Lf = normalize(vec3(-0.4, 0.62, 0.7));
+          vec3 V  = vec3(0.0, 0.0, 1.0);
+          vec3 Hp = normalize(Lp + V);
+          vec3 Hf = normalize(Lf + V);
+
+          float ndlP = max(dot(N, Lp), 0.0);
+          float ndlF = max(dot(N, Lf), 0.0);
+
+          // Anisotropic-ish specular (stretched chrome highlight)
+          float ax = abs(N.x);
+          float expP = mix(140.0, 48.0, ax);
+          float expF = mix(64.0, 28.0, ax);
+          float specP = pow(max(dot(N, Hp), 0.0), expP);
+          float specF = pow(max(dot(N, Hf), 0.0), expF);
+          float spec = specP * 1.55 + specF * 0.28;
+
+          // Soft environment: ceiling bright / floor dark via reflection
+          vec3 R = reflect(-V, N);
+          float envY = R.y * 0.5 + 0.5;
+          vec3 envFloor = vec3(0.05, 0.025, 0.08);
+          vec3 envWall  = vec3(0.22, 0.10, 0.32);
+          vec3 envCeil  = vec3(0.62, 0.52, 0.72);
+          vec3 env = mix(envFloor, envWall, smoothstep(0.15, 0.55, envY));
+          env = mix(env, envCeil, smoothstep(0.62, 0.95, envY));
+          env += vec3(0.18, 0.08, 0.28) * pow(ndlP, 2.0) * 0.25;
+
+          // Body: dark amethyst metal
+          float shade = clamp(0.18 + ndlF * 0.45 + ndlP * 0.55, 0.0, 1.0);
+          vec3 bodyDeep = vec3(0.045, 0.02, 0.075);
+          vec3 bodyMid  = vec3(0.20, 0.08, 0.30);
+          vec3 bodyHigh = vec3(0.42, 0.26, 0.52);
+          vec3 body = mix(bodyDeep, bodyMid, smoothstep(0.1, 0.5, shade));
+          body = mix(body, bodyHigh, smoothstep(0.5, 0.95, shade));
+
+          // Composite: env into metal, then hard specular flash
+          vec3 col = mix(body, env, 0.38);
+          col += vec3(0.97, 0.94, 1.0) * spec;
+
+          // Edge contact darkening (sits in the concrete)
+          float contact = smoothstep(0.15, 0.85, m);
+          col *= mix(0.72, 1.0, contact);
+
+          // Fresnel rim — thin cold lip, not a glow bloom
+          float rim = pow(clamp(1.0 - N.z, 0.0, 1.0), 2.8);
+          col += vec3(0.55, 0.40, 0.72) * rim * 0.4;
+
+          // Holo ONLY in the specular catch (foil when light hits)
+          float foilGate = smoothstep(0.08, 0.42, spec);
+          float hue = uv.x * 5.5 + uPointer.x * 3.0 + uTime * 0.25 + N.x * 2.0;
+          vec3 foil = 0.5 + 0.5 * cos(vec3(0.0, 2.094, 4.188) + hue);
+          col = mix(col, mix(col, foil, 0.55), foilGate * 0.5);
+
+          // Micro brush (not noisy grain soup)
+          float brush = sin((uv.y * uRes.y) * 0.35 + N.x * 8.0) * 0.012;
+          col += brush;
+
+          float alpha = smoothstep(0.03, 0.55, m);
+          o = vec4(col * alpha, alpha);
+        }`;
+
+        function compile(type, src) {
+          const s = gl.createShader(type);
+          gl.shaderSource(s, src);
+          gl.compileShader(s);
+          if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+            console.warn(gl.getShaderInfoLog(s));
+            return null;
+          }
+          return s;
+        }
+        const p = gl.createProgram();
+        const a = compile(gl.VERTEX_SHADER, vs);
+        const b = compile(gl.FRAGMENT_SHADER, fs);
+        if (!a || !b) {
+          canvas.style.display = "none";
+          fallback.style.display = "block";
+          return;
+        }
+        gl.attachShader(p, a);
+        gl.attachShader(p, b);
+        gl.linkProgram(p);
+        gl.useProgram(p);
+
+        const buf = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+        gl.bufferData(
+          gl.ARRAY_BUFFER,
+          new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]),
+          gl.STATIC_DRAW,
+        );
+        const loc = gl.getAttribLocation(p, "a");
+        gl.enableVertexAttribArray(loc);
+        gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+        const tex = gl.createTexture();
+        function uploadMask() {
+          gl.bindTexture(gl.TEXTURE_2D, tex);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+          gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+          gl.texImage2D(
+            gl.TEXTURE_2D,
+            0,
+            gl.RGBA,
+            gl.RGBA,
+            gl.UNSIGNED_BYTE,
+            mask,
+          );
+        }
+
+        const uMask = gl.getUniformLocation(p, "uMask");
+        const uRes = gl.getUniformLocation(p, "uRes");
+        const uTime = gl.getUniformLocation(p, "uTime");
+        const uPointer = gl.getUniformLocation(p, "uPointer");
+        gl.uniform1i(uMask, 0);
+
+        glPointer = (x, y) => {
+          pointer = [x, 1 - y];
+        };
+
+        document.fonts.ready.then(() => {
+          resize();
+        });
+        window.addEventListener("resize", resize);
+        resize();
+
+        const t0 = performance.now();
+        function frame(t) {
+          gl.uniform2f(uRes, canvas.width, canvas.height);
+          gl.uniform1f(uTime, (t - t0) / 1000);
+          gl.uniform2f(uPointer, pointer[0], pointer[1]);
+          gl.enable(gl.BLEND);
+          gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+          gl.clearColor(0, 0, 0, 0);
+          gl.clear(gl.COLOR_BUFFER_BIT);
+          gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+          requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+      }
+
+      // Path 3 is the default tab — boot WebGL on load
+      startGl();
+    </script>
+  </body>
+</html>

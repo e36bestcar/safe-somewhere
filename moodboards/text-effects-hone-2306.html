@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Safe-Somewhere - hone 02 · 03 · 06 fullscreen</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500;600&family=Six+Caps&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: oklch(0.48 0.02 95);
+        --mx: 55%;
+        --my: 42%;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #0b0b0d;
+        color: #eee;
+        font-family: "Host Grotesk", system-ui, sans-serif;
+        overflow: hidden;
+      }
+
+      /* Full-viewport stage */
+      .slide {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: var(--bg);
+        isolation: isolate;
+        cursor: crosshair;
+      }
+      .slide.is-on {
+        display: block;
+      }
+
+      .tex-matte,
+      .tex-grain,
+      .tex-vignette {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      .tex-matte {
+        opacity: 0.85;
+        filter: url(#matte-concrete);
+      }
+      .tex-grain {
+        opacity: 0.35;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        background-size: 220px;
+        mix-blend-mode: soft-light;
+      }
+      .tex-vignette {
+        background: radial-gradient(
+          120% 90% at 50% 40%,
+          transparent 20%,
+          rgb(0 0 0 / 0.35) 100%
+        );
+        mix-blend-mode: multiply;
+      }
+
+      .mark {
+        position: absolute;
+        left: clamp(1.5rem, 6vw, 5rem);
+        top: 48%;
+        transform: translateY(-50%);
+        z-index: 2;
+        margin: 0;
+        font-family: "Six Caps", sans-serif;
+        font-size: clamp(5.5rem, 18vw, 11rem);
+        line-height: 0.86;
+        letter-spacing: 0.04em;
+        pointer-events: none;
+        user-select: none;
+        text-wrap: balance;
+      }
+
+      /* Dock */
+      .dock {
+        position: fixed;
+        left: 50%;
+        bottom: 1.1rem;
+        transform: translateX(-50%);
+        z-index: 40;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        max-width: min(96vw, 920px);
+        padding: 0.55rem 0.7rem;
+        border-radius: 999px;
+        background: rgb(12 12 14 / 0.78);
+        border: 1px solid rgb(255 255 255 / 0.12);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+      .dock button {
+        appearance: none;
+        border: 1px solid transparent;
+        background: transparent;
+        color: #aaa;
+        font: inherit;
+        font-size: 0.72rem;
+        padding: 0.35rem 0.65rem;
+        border-radius: 999px;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .dock button:hover {
+        color: #eee;
+      }
+      .dock button.is-on {
+        border-color: #c9a0e8;
+        color: #e8d4ff;
+        background: #1c1524;
+      }
+      .dock .sep {
+        width: 1px;
+        height: 1.1rem;
+        background: rgb(255 255 255 / 0.12);
+        margin: 0 0.15rem;
+      }
+      .dock .pick-win {
+        border-color: rgb(255 255 255 / 0.18);
+        color: #ddd;
+      }
+      .dock .pick-win.is-chosen {
+        border-color: #c9a0e8;
+        color: #e8d4ff;
+      }
+
+      .meta {
+        position: fixed;
+        top: 1rem;
+        left: clamp(1rem, 3vw, 2rem);
+        z-index: 40;
+        max-width: min(36rem, 70vw);
+        pointer-events: none;
+      }
+      .meta strong {
+        display: block;
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-bottom: 0.2rem;
+        text-shadow: 0 1px 8px rgb(0 0 0 / 0.45);
+      }
+      .meta span {
+        display: block;
+        font-size: 0.78rem;
+        color: rgb(240 236 228 / 0.72);
+        line-height: 1.4;
+        text-shadow: 0 1px 8px rgb(0 0 0 / 0.45);
+      }
+      .keys {
+        position: fixed;
+        top: 1rem;
+        right: clamp(1rem, 3vw, 2rem);
+        z-index: 40;
+        font-size: 0.68rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgb(240 236 228 / 0.5);
+        text-shadow: 0 1px 8px rgb(0 0 0 / 0.45);
+        pointer-events: none;
+      }
+
+      /* ——— 02 ——— */
+      #s-02a .mark {
+        color: #f0ebe3;
+        mix-blend-mode: difference;
+      }
+      #s-02a .orb {
+        position: absolute;
+        width: min(52vw, 640px);
+        aspect-ratio: 1;
+        border-radius: 50%;
+        left: var(--mx);
+        top: var(--my);
+        transform: translate(-50%, -50%);
+        z-index: 1;
+        pointer-events: none;
+        background: radial-gradient(
+          circle,
+          oklch(0.52 0.14 25) 0%,
+          oklch(0.32 0.06 280 / 0.45) 48%,
+          transparent 72%
+        );
+      }
+
+      #s-02b .mark {
+        color: oklch(0.78 0.02 95);
+        mix-blend-mode: difference;
+      }
+      #s-02b .veil {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        background: radial-gradient(
+          circle at var(--mx) var(--my),
+          oklch(0.4 0.02 95 / 0.55),
+          transparent 55%
+        );
+      }
+
+      #s-02c .mark {
+        color: #e8e4dc;
+        mix-blend-mode: exclusion;
+      }
+      #s-02c .band {
+        position: absolute;
+        inset: 15% -12% 18%;
+        z-index: 1;
+        pointer-events: none;
+        background: linear-gradient(
+          105deg,
+          transparent 20%,
+          oklch(0.45 0.1 25 / 0.55) 48%,
+          oklch(0.3 0.06 280 / 0.4) 62%,
+          transparent 85%
+        );
+        transform: translateX(calc((var(--mx) - 50%) * 0.45));
+      }
+
+      /* ——— 03 ——— */
+      #s-03a .mark {
+        color: oklch(0.86 0.015 95);
+        mix-blend-mode: soft-light;
+      }
+      #s-03b .mark {
+        color: oklch(0.7 0.02 95);
+        mix-blend-mode: soft-light;
+      }
+      #s-03c .mark {
+        color: oklch(0.78 0.02 95);
+        mix-blend-mode: overlay;
+      }
+      #s-03d .mark {
+        color: oklch(0.9 0.01 95);
+        mix-blend-mode: soft-light;
+        text-shadow:
+          0 1px 0 rgb(255 255 255 / 0.12),
+          0 -1px 0 rgb(0 0 0 / 0.2);
+      }
+
+      /* ——— 06 ——— */
+      #s-06a .mark {
+        color: transparent;
+        -webkit-text-stroke: 1.5px oklch(0.16 0.02 250);
+      }
+      #s-06a:hover .mark {
+        color: oklch(0.14 0.02 250 / 0.14);
+      }
+
+      #s-06b .mark {
+        color: transparent;
+        -webkit-text-stroke: 2.25px oklch(0.18 0.02 250);
+      }
+      #s-06b:hover .mark {
+        color: oklch(0.14 0.02 250 / 0.2);
+      }
+
+      #s-06c .mark {
+        color: transparent;
+        -webkit-text-stroke: 1.75px oklch(0.82 0.015 95);
+      }
+      #s-06c:hover .mark {
+        color: oklch(0.82 0.015 95 / 0.16);
+      }
+
+      #s-06d .mark {
+        color: transparent;
+        -webkit-text-stroke: 1.75px oklch(0.48 0.15 25);
+      }
+      #s-06d:hover .mark {
+        color: oklch(0.48 0.15 25 / 0.18);
+      }
+
+      #s-06e .mark {
+        color: oklch(0.82 0.015 95);
+        mix-blend-mode: soft-light;
+        -webkit-text-stroke: 1.1px oklch(0.12 0.02 250 / 0.55);
+      }
+
+      @media (prefers-reduced-transparency: reduce) {
+        .dock {
+          backdrop-filter: none;
+          background: #161618;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <svg width="0" height="0" aria-hidden style="position: absolute">
+      <defs>
+        <filter
+          id="matte-concrete"
+          x="0%"
+          y="0%"
+          width="100%"
+          height="100%"
+          color-interpolation-filters="sRGB"
+        >
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.75"
+            numOctaves="4"
+            seed="7"
+            result="noise"
+          />
+          <feDiffuseLighting
+            in="noise"
+            lighting-color="#ffffff"
+            surfaceScale="1.4"
+            result="light"
+          >
+            <feDistantLight azimuth="135" elevation="48" />
+          </feDiffuseLighting>
+          <feComponentTransfer in="light">
+            <feFuncR type="linear" slope="0.85" intercept="0.05" />
+            <feFuncG type="linear" slope="0.85" intercept="0.05" />
+            <feFuncB type="linear" slope="0.85" intercept="0.05" />
+          </feComponentTransfer>
+        </filter>
+      </defs>
+    </svg>
+
+    <div class="meta">
+      <strong id="title">02a · Signal orb</strong>
+      <span id="desc">Difference + warm signal light. Move the pointer.</span>
+    </div>
+    <div class="keys">← → · 1-0 · Enter to pick</div>
+
+    <!-- slides -->
+    <section
+      class="slide is-on"
+      id="s-02a"
+      data-track
+      data-title="02a · Signal orb"
+      data-desc="Difference + warm signal light under the type. Move the pointer."
+    >
+      <div class="tex-matte"></div>
+      <div class="tex-grain"></div>
+      <div class="tex-vignette"></div>
+      <div class="orb"></div>
+      <p class="mark">Safe<br />Somewhere</p>
+    </section>
+
+    <section
+      class="slide"
+      id="s-02b"
+      data-track
+      data-title="02b · Quiet veil"
+      data-desc="Difference with a soft concrete-toned veil. Calmer. Move the pointer."
+    >
+      <div class="tex-matte"></div>
+      <div class="tex-grain"></div>
+      <div class="tex-vignette"></div>
+      <div class="veil"></div>
+      <p class="mark">Safe<br />Somewhere</p>
+    </section>
+
+    <section
+      class="slide"
+      id="s-02c"
+      data-track
+      data-title="02c · Exclusion band"
+      data-desc="Exclusion blend + diagonal light band. Move the pointer."
+    >
+      <div class="tex-matte"></div>
+      <div class="tex-grain"></div>
+      <div class="tex-vignette"></div>
+      <div class="band"></div>
+      <p class="mark">Safe<br />Somewhere</p>
+    </section>
+
+    <section
+      class="slide"
+      id="s-03a"
+      data-title="03a · Bone soft-light"
+      data-desc="Bright stamp into the matte. Static. Watch the glyph edges."
+    >
+      <div class="tex-matte"></div>
+      <div class="tex-grain"></div>
+      <div class="tex-vignette"></div>
+      <p class="mark">Safe<br />Somewhere</p>
+    </section>
+
+    <section
+      class="slide"
+      id="s-03b"
+      data-title="03b · Mid soft-light"
+      data-desc="Quieter. More etched into the wall. Static."
+    >
+      <div class="tex-matte"></div>
+      <div class="tex-grain"></div>
+      <div class="tex-vignette"></div>
+      <p class="mark">Safe<br />Somewhere</p>
+    </section>
+
+    <section
+      class="slide"
+      id="s-03c"
+      data-title="03c · Overlay"
+      data-desc="Overlay blend. Slightly harder contrast. Static."
+    >
+      <div class="tex-matte"></div>
+      <div class="tex-grain"></div>
+      <div class="tex-vignette"></div>
+      <p class="mark">Safe<br />Somewhere</p>
+    </section>
+
+    <section
+      class="slide"
+      id="s-03d"
+      data-title="03d · Soft-light + micro edge"
+      data-desc="Soft-light with a 1px light/dark kiss. Almost emboss. Static."
+    >
+      <div class="tex-matte"></div>
+      <div class="tex-grain"></div>
+      <div class="tex-vignette"></div>
+      <p class="mark">Safe<br />Somewhere</p>
+    </section>
+
+    <section
+      class="slide"
+      id="s-06a"
+      data-title="06a · Ink hairline"
+      data-desc="1.5px dark stroke at full size. Hover for soft ink fill."
+    >
+      <div class="tex-matte"></div>
+      <div class="tex-grain"></div>
+      <div class="tex-vignette"></div>
+      <p class="mark">Safe<br />Somewhere</p>
+    </section>
+
+    <section
+      class="slide"
+      id="s-06b"
+      data-title="06b · Ink heavier"
+      data-desc="2.25px stroke. Louder at distance. Hover for fill."
+    >
+      <div class="tex-matte"></div>
+      <div class="tex-grain"></div>
+      <div class="tex-vignette"></div>
+      <p class="mark">Safe<br />Somewhere</p>
+    </section>
+
+    <section
+      class="slide"
+      id="s-06c"
+      data-title="06c · Bone outline"
+      data-desc="Light stroke on concrete. Hover for soft bone fill."
+    >
+      <div class="tex-matte"></div>
+      <div class="tex-grain"></div>
+      <div class="tex-vignette"></div>
+      <p class="mark">Safe<br />Somewhere</p>
+    </section>
+
+    <section
+      class="slide"
+      id="s-06d"
+      data-title="06d · Signal outline"
+      data-desc="Brand red stroke. Hover for soft fill."
+    >
+      <div class="tex-matte"></div>
+      <div class="tex-grain"></div>
+      <div class="tex-vignette"></div>
+      <p class="mark">Safe<br />Somewhere</p>
+    </section>
+
+    <section
+      class="slide"
+      id="s-06e"
+      data-title="06e · Soft-light + stroke"
+      data-desc="03 + 06 hybrid. Stamp fill with a dark lip. Static."
+    >
+      <div class="tex-matte"></div>
+      <div class="tex-grain"></div>
+      <div class="tex-vignette"></div>
+      <p class="mark">Safe<br />Somewhere</p>
+    </section>
+
+    <nav class="dock" aria-label="Variants">
+      <button type="button" data-go="s-02a" class="is-on">02a</button>
+      <button type="button" data-go="s-02b">02b</button>
+      <button type="button" data-go="s-02c">02c</button>
+      <span class="sep" aria-hidden></span>
+      <button type="button" data-go="s-03a">03a</button>
+      <button type="button" data-go="s-03b">03b</button>
+      <button type="button" data-go="s-03c">03c</button>
+      <button type="button" data-go="s-03d">03d</button>
+      <span class="sep" aria-hidden></span>
+      <button type="button" data-go="s-06a">06a</button>
+      <button type="button" data-go="s-06b">06b</button>
+      <button type="button" data-go="s-06c">06c</button>
+      <button type="button" data-go="s-06d">06d</button>
+      <button type="button" data-go="s-06e">06e</button>
+      <span class="sep" aria-hidden></span>
+      <button type="button" class="pick-win" id="pickBtn">Pick this</button>
+    </nav>
+
+    <script>
+      const slides = [...document.querySelectorAll(".slide")];
+      const tabs = [...document.querySelectorAll("[data-go]")];
+      const title = document.getElementById("title");
+      const desc = document.getElementById("desc");
+      const pickBtn = document.getElementById("pickBtn");
+      let i = 0;
+      let chosen = null;
+
+      function show(index) {
+        i = (index + slides.length) % slides.length;
+        slides.forEach((s, n) => s.classList.toggle("is-on", n === i));
+        tabs.forEach((t) =>
+          t.classList.toggle("is-on", t.dataset.go === slides[i].id),
+        );
+        title.textContent = slides[i].dataset.title;
+        desc.textContent = slides[i].dataset.desc;
+        pickBtn.textContent =
+          chosen === slides[i].id ? "Picked ✓" : "Pick this";
+        pickBtn.classList.toggle("is-chosen", chosen === slides[i].id);
+      }
+
+      tabs.forEach((t) => {
+        t.addEventListener("click", () => {
+          const idx = slides.findIndex((s) => s.id === t.dataset.go);
+          if (idx >= 0) show(idx);
+        });
+      });
+
+      pickBtn.addEventListener("click", () => {
+        chosen = slides[i].id.replace(/^s-/, "");
+        pickBtn.textContent = "Picked ✓";
+        pickBtn.classList.add("is-chosen");
+        title.textContent =
+          slides[i].dataset.title + "  ·  tell me “" + chosen + "”";
+      });
+
+      document.querySelectorAll("[data-track]").forEach((stage) => {
+        stage.addEventListener("pointermove", (e) => {
+          const r = stage.getBoundingClientRect();
+          const x = ((e.clientX - r.left) / r.width) * 100;
+          const y = ((e.clientY - r.top) / r.height) * 100;
+          stage.style.setProperty("--mx", x.toFixed(1) + "%");
+          stage.style.setProperty("--my", y.toFixed(1) + "%");
+        });
+      });
+
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight" || e.key === " ") {
+          e.preventDefault();
+          show(i + 1);
+        } else if (e.key === "ArrowLeft") {
+          e.preventDefault();
+          show(i - 1);
+        } else if (e.key === "Enter") {
+          pickBtn.click();
+        } else if (e.key >= "1" && e.key <= "9") {
+          show(Number(e.key) - 1);
+        } else if (e.key === "0") {
+          show(9);
+        }
+      });
+    </script>
+  </body>
+</html>

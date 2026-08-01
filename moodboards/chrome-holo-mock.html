@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Safe-Somewhere — holographic chrome mock</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500;600&family=Six+Caps&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: oklch(0.48 0.02 95);
+        --mx: 50%;
+        --my: 50%;
+        --angle: 120deg;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #0c0c0e;
+        color: #eee;
+        font-family: "Host Grotesk", system-ui, sans-serif;
+      }
+      header {
+        padding: 1.25rem clamp(1rem, 3vw, 2rem) 0.5rem;
+      }
+      header h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+      }
+      header p {
+        margin: 0;
+        max-width: 40rem;
+        color: #9a9690;
+        font-size: 0.85rem;
+        line-height: 1.45;
+      }
+      header a {
+        color: #c9a0e8;
+      }
+
+      .hero {
+        position: relative;
+        isolation: isolate;
+        margin: 1rem clamp(1rem, 3vw, 2rem) 1.5rem;
+        min-height: min(72vh, 640px);
+        overflow: hidden;
+        background: var(--bg);
+        border: 1px solid rgb(255 255 255 / 0.08);
+        cursor: crosshair;
+      }
+
+      /* Locked concrete preview only — not the live site */
+      .tex-matte {
+        position: absolute;
+        inset: 0;
+        opacity: 0.85;
+        filter: url(#matte-concrete);
+        pointer-events: none;
+      }
+      .tex-grain {
+        position: absolute;
+        inset: 0;
+        opacity: 0.35;
+        pointer-events: none;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        background-size: 220px;
+        mix-blend-mode: soft-light;
+      }
+      .tex-vignette {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(
+          120% 90% at 50% 40%,
+          transparent 20%,
+          rgb(0 0 0 / 0.35) 100%
+        );
+        mix-blend-mode: multiply;
+      }
+
+      .word {
+        position: absolute;
+        left: clamp(1.25rem, 4vw, 3rem);
+        top: 50%;
+        transform: translateY(-55%);
+        z-index: 2;
+        margin: 0;
+        font-family: "Six Caps", sans-serif;
+        font-size: clamp(4rem, 16vw, 9rem);
+        line-height: 0.88;
+        letter-spacing: 0.04em;
+        font-weight: 400;
+        /* Layer stack: chrome base + holo foil + specular */
+        background-image:
+          /* specular rake — catches light like foil */
+          linear-gradient(
+            var(--angle),
+            transparent 35%,
+            rgb(255 255 255 / 0.95) 48%,
+            rgb(255 255 255 / 0.15) 52%,
+            transparent 65%
+          ),
+          /* holographic rainbow (pokemon foil) */
+          conic-gradient(
+            from var(--angle) at var(--mx) var(--my),
+            oklch(0.75 0.22 20),
+            oklch(0.8 0.2 70),
+            oklch(0.78 0.2 120),
+            oklch(0.76 0.2 180),
+            oklch(0.74 0.22 230),
+            oklch(0.72 0.24 280),
+            oklch(0.74 0.22 320),
+            oklch(0.75 0.22 20)
+          ),
+          /* dark purple chrome body */
+          linear-gradient(
+            165deg,
+            #3a2048 0%,
+            #12081c 28%,
+            #2a1438 45%,
+            #0a0410 62%,
+            #4a2860 82%,
+            #180c24 100%
+          );
+        background-size:
+          220% 220%,
+          180% 180%,
+          100% 100%;
+        background-position:
+          var(--mx) var(--my),
+          var(--mx) var(--my),
+          center;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        filter: drop-shadow(0 1px 0 rgb(0 0 0 / 0.55))
+          drop-shadow(0 14px 4px rgb(30 0 50 / 0.4))
+          drop-shadow(0 40px 14px rgb(0 0 0 / 0.28));
+      }
+
+      /* Sparkle glitter — clipped to same box via mask on a twin */
+      .word-sparkle {
+        position: absolute;
+        left: clamp(1.25rem, 4vw, 3rem);
+        top: 50%;
+        transform: translateY(-55%);
+        z-index: 3;
+        margin: 0;
+        font-family: "Six Caps", sans-serif;
+        font-size: clamp(4rem, 16vw, 9rem);
+        line-height: 0.88;
+        letter-spacing: 0.04em;
+        font-weight: 400;
+        pointer-events: none;
+        background-image:
+          radial-gradient(
+            circle at 20% 30%,
+            rgb(255 255 255 / 0.9) 0 0.8px,
+            transparent 1.2px
+          ),
+          radial-gradient(
+            circle at 70% 40%,
+            rgb(255 255 255 / 0.75) 0 0.6px,
+            transparent 1px
+          ),
+          radial-gradient(
+            circle at 40% 75%,
+            rgb(255 255 255 / 0.85) 0 0.7px,
+            transparent 1.1px
+          ),
+          radial-gradient(
+            circle at 85% 60%,
+            rgb(255 255 255 / 0.7) 0 0.5px,
+            transparent 0.9px
+          ),
+          radial-gradient(
+            circle at 55% 20%,
+            rgb(255 255 255 / 0.8) 0 0.55px,
+            transparent 0.95px
+          );
+        background-size: 28px 28px, 36px 36px, 22px 22px, 40px 40px, 18px 18px;
+        background-position:
+          calc(var(--mx) * 0.4) calc(var(--my) * 0.4),
+          calc(var(--mx) * -0.3) calc(var(--my) * 0.5),
+          calc(var(--mx) * 0.2) calc(var(--my) * -0.2),
+          var(--mx) var(--my),
+          calc(var(--mx) * -0.5) calc(var(--my) * 0.3);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        mix-blend-mode: screen;
+        opacity: 0.75;
+      }
+
+      .hint {
+        position: absolute;
+        right: 1rem;
+        bottom: 1rem;
+        z-index: 4;
+        font-size: 0.65rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: rgb(0 0 0 / 0.45);
+      }
+
+      .variants {
+        display: grid;
+        gap: 0.85rem;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        padding: 0 clamp(1rem, 3vw, 2rem) 2rem;
+      }
+      .v {
+        border: 1px solid rgb(255 255 255 / 0.08);
+        background: #141416;
+        padding: 0.85rem;
+      }
+      .v strong {
+        display: block;
+        font-size: 0.8rem;
+        margin-bottom: 0.25rem;
+      }
+      .v p {
+        margin: 0;
+        font-size: 0.7rem;
+        color: #9a9690;
+        line-height: 1.4;
+      }
+      .v button {
+        margin-top: 0.65rem;
+        appearance: none;
+        border: 1px solid rgb(255 255 255 / 0.15);
+        background: #1c1c20;
+        color: #eee;
+        font: inherit;
+        font-size: 0.72rem;
+        padding: 0.35rem 0.65rem;
+        cursor: pointer;
+        border-radius: 999px;
+      }
+      .v button:hover,
+      .v.is-on button {
+        border-color: #c9a0e8;
+        color: #c9a0e8;
+      }
+      .v.is-on {
+        outline: 1px solid #c9a0e8;
+      }
+
+      /* Intensity presets via data-attr on hero */
+      .hero[data-mode="arcade"] .word {
+        filter: saturate(1.45) contrast(1.1)
+          drop-shadow(0 1px 0 rgb(0 0 0 / 0.55))
+          drop-shadow(0 14px 4px rgb(30 0 50 / 0.4))
+          drop-shadow(0 40px 14px rgb(0 0 0 / 0.28));
+      }
+      .hero[data-mode="quiet"] .word {
+        filter: saturate(0.85) brightness(0.95)
+          drop-shadow(0 1px 0 rgb(0 0 0 / 0.55))
+          drop-shadow(0 14px 4px rgb(30 0 50 / 0.35))
+          drop-shadow(0 40px 14px rgb(0 0 0 / 0.28));
+      }
+      .hero[data-mode="quiet"] .word-sparkle {
+        opacity: 0.35;
+      }
+      .hero[data-mode="chrome"] .word {
+        /* more metal, less rainbow */
+        background-image:
+          linear-gradient(
+            var(--angle),
+            transparent 38%,
+            rgb(255 255 255 / 0.9) 49%,
+            transparent 60%
+          ),
+          conic-gradient(
+            from var(--angle) at var(--mx) var(--my),
+            oklch(0.55 0.12 300),
+            oklch(0.7 0.08 280),
+            oklch(0.85 0.04 250),
+            oklch(0.65 0.1 320),
+            oklch(0.5 0.12 290),
+            oklch(0.75 0.06 270),
+            oklch(0.55 0.12 300)
+          ),
+          linear-gradient(
+            165deg,
+            #2a1838 0%,
+            #0c0614 35%,
+            #1a0c28 55%,
+            #080410 100%
+          );
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .word-sparkle {
+          opacity: 0.25;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <svg width="0" height="0" aria-hidden style="position: absolute">
+      <defs>
+        <filter
+          id="matte-concrete"
+          x="0%"
+          y="0%"
+          width="100%"
+          height="100%"
+          color-interpolation-filters="sRGB"
+        >
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.75"
+            numOctaves="4"
+            seed="7"
+            result="noise"
+          />
+          <feDiffuseLighting
+            in="noise"
+            lighting-color="#ffffff"
+            surfaceScale="1.4"
+            result="light"
+          >
+            <feDistantLight azimuth="135" elevation="48" />
+          </feDiffuseLighting>
+          <feComponentTransfer in="light">
+            <feFuncR type="linear" slope="0.85" intercept="0.05" />
+            <feFuncG type="linear" slope="0.85" intercept="0.05" />
+            <feFuncB type="linear" slope="0.85" intercept="0.05" />
+          </feComponentTransfer>
+        </filter>
+      </defs>
+    </svg>
+
+    <header>
+      <h1>Holographic chrome · Pokemon-foil mock</h1>
+      <p>
+        Direction from
+        <a
+          href="https://elements.envato.com/chrome-text-logo-effect-YTF3VTE"
+          target="_blank"
+          rel="noreferrer"
+          >Envato chrome text</a
+        >
+        + holographic trading-card foil. Move the mouse over the stage — rainbow
+        + specular rake track the light. <strong>Live site not changed.</strong>
+        Pick a mode below if you want this applied next.
+      </p>
+    </header>
+
+    <section class="hero" id="hero" data-mode="holo">
+      <div class="tex-matte"></div>
+      <div class="tex-grain"></div>
+      <div class="tex-vignette"></div>
+      <h2 class="word" id="word">Safe<br />Somewhere</h2>
+      <p class="word-sparkle" aria-hidden>Safe<br />Somewhere</p>
+      <span class="hint">move pointer</span>
+    </section>
+
+    <div class="variants">
+      <div class="v is-on" data-mode="holo">
+        <strong>A · Full holo</strong>
+        <p>
+          Dark purple chrome body + full rainbow conic foil + sparkles. Closest
+          to a shiny Pokémon card.
+        </p>
+        <button type="button">Select A</button>
+      </div>
+      <div class="v" data-mode="chrome">
+        <strong>B · Chrome-leaning holo</strong>
+        <p>
+          More metal, less carnival. Violet/silver env with a thinner rainbow —
+          Envato chrome first, foil second.
+        </p>
+        <button type="button">Select B</button>
+      </div>
+      <div class="v" data-mode="quiet">
+        <strong>C · Quiet foil</strong>
+        <p>
+          Same system, dialed down saturation — ominous collective, still
+          holographic when light hits.
+        </p>
+        <button type="button">Select C</button>
+      </div>
+      <div class="v" data-mode="arcade">
+        <strong>D · Arcade foil</strong>
+        <p>
+          Pushed saturation/contrast — max trading-card energy.
+        </p>
+        <button type="button">Select D</button>
+      </div>
+    </div>
+
+    <script>
+      const hero = document.getElementById("hero");
+      const root = document.documentElement;
+
+      hero.addEventListener("pointermove", (e) => {
+        const r = hero.getBoundingClientRect();
+        const x = (e.clientX - r.left) / r.width;
+        const y = (e.clientY - r.top) / r.height;
+        const mx = x * 100;
+        const my = y * 100;
+        const angle = Math.atan2(y - 0.5, x - 0.5) * (180 / Math.PI) + 180;
+        root.style.setProperty("--mx", mx.toFixed(2) + "%");
+        root.style.setProperty("--my", my.toFixed(2) + "%");
+        root.style.setProperty("--angle", angle.toFixed(1) + "deg");
+      });
+
+      document.querySelectorAll(".v").forEach((card) => {
+        card.querySelector("button").addEventListener("click", () => {
+          document.querySelectorAll(".v").forEach((c) => c.classList.remove("is-on"));
+          card.classList.add("is-on");
+          hero.dataset.mode = card.dataset.mode;
+        });
+      });
+    </script>
+  </body>
+</html>

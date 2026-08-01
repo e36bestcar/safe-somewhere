@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Safe-Somewhere — 20 uncommon palettes + matte/chrome</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --page: #121212;
+        --label: #b8b8b8;
+        --hair: rgb(255 255 255 / 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--page);
+        color: #eee;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        padding: clamp(1.25rem, 3vw, 2.5rem);
+      }
+
+      h1 {
+        margin: 0 0 0.4rem;
+        font-size: clamp(1.2rem, 2.2vw, 1.55rem);
+        font-weight: 500;
+        letter-spacing: 0.01em;
+      }
+
+      .lede {
+        margin: 0 0 2rem;
+        max-width: 46rem;
+        color: var(--label);
+        font-size: 0.9rem;
+        line-height: 1.5;
+      }
+
+      h2 {
+        margin: 2.75rem 0 1rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--label);
+      }
+
+      /* ——— Matte + chrome experiment ——— */
+      .chrome-lab {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      }
+
+      .matte-card {
+        position: relative;
+        isolation: isolate;
+        min-height: 280px;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        overflow: hidden;
+        border: 1px solid var(--hair);
+      }
+
+      /* Matte: soft vignette + grain (SVG noise) */
+      .matte-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        background:
+          radial-gradient(120% 90% at 50% 20%, transparent 30%, rgb(0 0 0 / 0.35) 100%),
+          linear-gradient(180deg, rgb(255 255 255 / 0.04), transparent 40%);
+        mix-blend-mode: multiply;
+      }
+
+      .matte-card::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        opacity: 0.55;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        background-size: 180px 180px;
+        mix-blend-mode: soft-light;
+      }
+
+      .matte-card > * {
+        position: relative;
+        z-index: 2;
+      }
+
+      .chrome {
+        margin: 0;
+        font-size: clamp(2.4rem, 5vw, 3.4rem);
+        font-weight: 600;
+        letter-spacing: -0.04em;
+        line-height: 0.95;
+        /* Colored chrome: specular ridge + dark valley + tinted metal */
+        background-image: var(--chrome);
+        background-size: 100% 100%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        filter: drop-shadow(0 1px 0 rgb(0 0 0 / 0.35))
+          drop-shadow(0 8px 18px rgb(0 0 0 / 0.25));
+      }
+
+      .chrome-sub {
+        margin: 0.85rem 0 0;
+        max-width: 22ch;
+        font-size: 0.85rem;
+        line-height: 1.45;
+        color: rgb(255 255 255 / 0.42);
+      }
+
+      .matte-meta {
+        font-size: 0.65rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgb(255 255 255 / 0.38);
+      }
+
+      .m1 {
+        background: oklch(0.4 0.012 230);
+        --chrome: linear-gradient(
+          175deg,
+          oklch(0.92 0.04 200) 0%,
+          oklch(0.78 0.08 195) 18%,
+          oklch(0.45 0.06 210) 42%,
+          oklch(0.88 0.05 185) 58%,
+          oklch(0.55 0.07 220) 78%,
+          oklch(0.82 0.06 190) 100%
+        );
+      }
+
+      .m2 {
+        background: oklch(0.37 0.02 70);
+        --chrome: linear-gradient(
+          175deg,
+          oklch(0.95 0.06 75) 0%,
+          oklch(0.72 0.12 55) 22%,
+          oklch(0.42 0.08 45) 45%,
+          oklch(0.9 0.08 85) 62%,
+          oklch(0.5 0.1 50) 80%,
+          oklch(0.85 0.07 70) 100%
+        );
+      }
+
+      .m3 {
+        background: oklch(0.39 0.022 160);
+        --chrome: linear-gradient(
+          175deg,
+          oklch(0.93 0.05 145) 0%,
+          oklch(0.7 0.12 155) 20%,
+          oklch(0.4 0.08 165) 44%,
+          oklch(0.88 0.07 140) 60%,
+          oklch(0.48 0.1 170) 78%,
+          oklch(0.8 0.06 150) 100%
+        );
+      }
+
+      .m4 {
+        background: oklch(0.36 0.03 20);
+        --chrome: linear-gradient(
+          175deg,
+          oklch(0.94 0.04 350) 0%,
+          oklch(0.72 0.14 340) 20%,
+          oklch(0.38 0.1 330) 45%,
+          oklch(0.9 0.08 10) 62%,
+          oklch(0.5 0.12 320) 80%,
+          oklch(0.84 0.07 350) 100%
+        );
+      }
+
+      /* ——— Palette grid ——— */
+      .grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      }
+
+      .card {
+        border: 1px solid var(--hair);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .stage {
+        aspect-ratio: 5 / 4;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+      }
+
+      .stage .name {
+        font-size: 1.35rem;
+        font-weight: 560;
+        letter-spacing: -0.03em;
+        line-height: 1.05;
+      }
+
+      .stage .bit {
+        font-size: 0.72rem;
+        line-height: 1.4;
+        max-width: 18ch;
+        opacity: 0.7;
+      }
+
+      .stage .tag {
+        font-size: 0.58rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        opacity: 0.45;
+      }
+
+      .info {
+        padding: 0.75rem 0.85rem 0.9rem;
+        background: #0e0e0e;
+      }
+
+      .info strong {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+
+      .info p {
+        margin: 0 0 0.65rem;
+        font-size: 0.7rem;
+        color: var(--label);
+        line-height: 1.4;
+      }
+
+      .sw {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 3px;
+      }
+
+      .sw i {
+        display: block;
+        aspect-ratio: 1;
+        border: 1px solid rgb(255 255 255 / 0.08);
+      }
+
+      .note {
+        margin-top: 2rem;
+        color: var(--label);
+        font-size: 0.8rem;
+        line-height: 1.5;
+        max-width: 40rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Safe-Somewhere — uncommon palettes + matte / chrome</h1>
+    <p class="lede">
+      Exploration only — not the site. 20 dim mid-tone palettes aimed away from
+      cream/terracotta, purple-on-white, neon-on-black, and spa-green wellness.
+      Below: matte grain surface with colored chrome type (specular ridges, dark
+      valleys). Reply with numbers you like, or mixes.
+    </p>
+
+    <h2>Matte + colored chrome (material test)</h2>
+    <div class="chrome-lab">
+      <div class="matte-card m1">
+        <div class="matte-meta">01 · ice chrome on wet concrete</div>
+        <div>
+          <p class="chrome">Safe<br />Somewhere</p>
+          <p class="chrome-sub">Matte field. Type as cold cyan metal.</p>
+        </div>
+        <div class="matte-meta">signal / still</div>
+      </div>
+      <div class="matte-card m2">
+        <div class="matte-meta">02 · amber chrome on lamp room</div>
+        <div>
+          <p class="chrome">Safe<br />Somewhere</p>
+          <p class="chrome-sub">Matte umber. Type as warm brass-chrome.</p>
+        </div>
+        <div class="matte-meta">room / after</div>
+      </div>
+      <div class="matte-card m3">
+        <div class="matte-meta">03 · verdant chrome on fog</div>
+        <div>
+          <p class="chrome">Safe<br />Somewhere</p>
+          <p class="chrome-sub">Matte moss-gray. Type as green anodized metal.</p>
+        </div>
+        <div class="matte-meta">fog / platform</div>
+      </div>
+      <div class="matte-card m4">
+        <div class="matte-meta">04 · rose chrome on kiln</div>
+        <div>
+          <p class="chrome">Safe<br />Somewhere</p>
+          <p class="chrome-sub">Matte oxide. Type as pink-steel chrome.</p>
+        </div>
+        <div class="matte-meta">kiln / hush</div>
+      </div>
+    </div>
+
+    <h2>20 uncommon mid-tone palettes</h2>
+    <div class="grid" id="palettes"></div>
+
+    <p class="note">
+      Pick favorites by number (e.g. 4, 11, 17 + chrome 02). Still no site build
+      until you lock more. Matte grain is CSS noise; real chrome can go further
+      later with SVG/displacement if this direction sticks.
+    </p>
+
+    <script>
+      const palettes = [
+        {
+          n: 1,
+          title: "Sodium garage",
+          blurb: "Night parking structure under sodium lamps. Sickly warmth, not cozy.",
+          bg: "oklch(0.36 0.03 75)",
+          surface: "oklch(0.42 0.035 75)",
+          ink: "oklch(0.9 0.03 85)",
+          primary: "oklch(0.68 0.14 75)",
+          accent: "oklch(0.45 0.08 250)",
+        },
+        {
+          n: 2,
+          title: "Xerox blue room",
+          blurb: "Office after hours. Cool machine-blue mid, apricot metal edge.",
+          bg: "oklch(0.4 0.035 250)",
+          surface: "oklch(0.46 0.04 250)",
+          ink: "oklch(0.92 0.02 250)",
+          primary: "oklch(0.72 0.1 55)",
+          accent: "oklch(0.55 0.09 250)",
+        },
+        {
+          n: 3,
+          title: "Iodine & putty",
+          blurb: "Pharmacy shelf energy without wellness. Violet stain on gray putty.",
+          bg: "oklch(0.43 0.015 100)",
+          surface: "oklch(0.49 0.018 100)",
+          ink: "oklch(0.2 0.02 300)",
+          primary: "oklch(0.42 0.12 310)",
+          accent: "oklch(0.7 0.08 95)",
+        },
+        {
+          n: 4,
+          title: "Verdigris slate",
+          blurb: "Oxidized copper on wet slate. Industrial decay, quiet.",
+          bg: "oklch(0.38 0.02 240)",
+          surface: "oklch(0.44 0.025 240)",
+          ink: "oklch(0.9 0.02 200)",
+          primary: "oklch(0.55 0.09 175)",
+          accent: "oklch(0.58 0.1 45)",
+        },
+        {
+          n: 5,
+          title: "Bakelite night",
+          blurb: "Old radio housing brown-gray. Mint oxide spark — not pastel mint.",
+          bg: "oklch(0.35 0.03 55)",
+          surface: "oklch(0.41 0.035 55)",
+          ink: "oklch(0.88 0.03 70)",
+          primary: "oklch(0.58 0.08 175)",
+          accent: "oklch(0.5 0.1 25)",
+        },
+        {
+          n: 6,
+          title: "Chlorine platform",
+          blurb: "Empty indoor pool at night. Weird institutional teal-gray.",
+          bg: "oklch(0.4 0.035 195)",
+          surface: "oklch(0.46 0.04 195)",
+          ink: "oklch(0.93 0.02 195)",
+          primary: "oklch(0.75 0.08 95)",
+          accent: "oklch(0.48 0.1 20)",
+        },
+        {
+          n: 7,
+          title: "Nicotine plaster",
+          blurb: "Stained wall, not cream paper. Deep teal as the only clean thing.",
+          bg: "oklch(0.45 0.04 90)",
+          surface: "oklch(0.5 0.045 90)",
+          ink: "oklch(0.22 0.03 70)",
+          primary: "oklch(0.4 0.08 200)",
+          accent: "oklch(0.55 0.12 35)",
+        },
+        {
+          n: 8,
+          title: "Prussian diner",
+          blurb: "Closed diner. Prussian mid-field, cadmium spark — film still.",
+          bg: "oklch(0.34 0.05 255)",
+          surface: "oklch(0.4 0.055 255)",
+          ink: "oklch(0.9 0.03 250)",
+          primary: "oklch(0.65 0.16 55)",
+          accent: "oklch(0.55 0.08 200)",
+        },
+        {
+          n: 9,
+          title: "Manganese dust",
+          blurb: "Desaturated violet dust + cold olive. Strange, not purple-brand.",
+          bg: "oklch(0.39 0.03 300)",
+          surface: "oklch(0.45 0.035 300)",
+          ink: "oklch(0.9 0.02 100)",
+          primary: "oklch(0.5 0.07 130)",
+          accent: "oklch(0.62 0.1 50)",
+        },
+        {
+          n: 10,
+          title: "Anodized lot",
+          blurb: "Cold concrete + anodized magenta. Car-lot industrial, not neon club.",
+          bg: "oklch(0.42 0.01 250)",
+          surface: "oklch(0.48 0.012 250)",
+          ink: "oklch(0.18 0.02 300)",
+          primary: "oklch(0.5 0.14 340)",
+          accent: "oklch(0.65 0.06 120)",
+        },
+        {
+          n: 11,
+          title: "Hospital green hush",
+          blurb: "Institutional green mid — ominous calm, not spa. Chrome pink edge.",
+          bg: "oklch(0.43 0.04 155)",
+          surface: "oklch(0.49 0.045 155)",
+          ink: "oklch(0.2 0.03 155)",
+          primary: "oklch(0.55 0.1 350)",
+          accent: "oklch(0.6 0.08 85)",
+        },
+        {
+          n: 12,
+          title: "Arctic mud",
+          blurb: "Cold brown-gray earth. Polar green metal. Northern, not cozy cabin.",
+          bg: "oklch(0.37 0.02 80)",
+          surface: "oklch(0.43 0.025 80)",
+          ink: "oklch(0.9 0.02 200)",
+          primary: "oklch(0.62 0.1 175)",
+          accent: "oklch(0.55 0.08 30)",
+        },
+        {
+          n: 13,
+          title: "Cork & iodine",
+          blurb: "Wine-cork gray-brown field. Thin electric indigo — lab, not lounge.",
+          bg: "oklch(0.41 0.025 75)",
+          surface: "oklch(0.47 0.03 75)",
+          ink: "oklch(0.88 0.02 75)",
+          primary: "oklch(0.45 0.14 285)",
+          accent: "oklch(0.68 0.08 70)",
+        },
+        {
+          n: 14,
+          title: "Fern shadow lot",
+          blurb: "Parking structure with one fern. Aluminum-rose metal on deep green-gray.",
+          bg: "oklch(0.33 0.03 150)",
+          surface: "oklch(0.39 0.035 150)",
+          ink: "oklch(0.88 0.03 140)",
+          primary: "oklch(0.7 0.08 20)",
+          accent: "oklch(0.55 0.07 200)",
+        },
+        {
+          n: 15,
+          title: "Satellite dish",
+          blurb: "Cool dish-beige (not warm cream). Signal red, tiny and mean.",
+          bg: "oklch(0.48 0.02 95)",
+          surface: "oklch(0.54 0.022 95)",
+          ink: "oklch(0.22 0.02 250)",
+          primary: "oklch(0.48 0.15 25)",
+          accent: "oklch(0.45 0.06 230)",
+        },
+        {
+          n: 16,
+          title: "Wet asphalt brass",
+          blurb: "Blue-black asphalt mid (still not pure black). Dull brass highlights.",
+          bg: "oklch(0.32 0.025 250)",
+          surface: "oklch(0.38 0.03 250)",
+          ink: "oklch(0.88 0.04 90)",
+          primary: "oklch(0.7 0.1 85)",
+          accent: "oklch(0.5 0.08 200)",
+        },
+        {
+          n: 17,
+          title: "Celadon kiln",
+          blurb: "Kiln-black brown with celadon glaze. Ceramic studio after hours.",
+          bg: "oklch(0.3 0.025 50)",
+          surface: "oklch(0.36 0.03 50)",
+          ink: "oklch(0.86 0.04 160)",
+          primary: "oklch(0.62 0.07 170)",
+          accent: "oklch(0.55 0.1 35)",
+        },
+        {
+          n: 18,
+          title: "Tobacco & ice",
+          blurb: "Tobacco leather mid-tone (surface IS the room). Ice-blue chrome type.",
+          bg: "oklch(0.36 0.04 60)",
+          surface: "oklch(0.42 0.045 60)",
+          ink: "oklch(0.88 0.04 220)",
+          primary: "oklch(0.72 0.08 230)",
+          accent: "oklch(0.55 0.1 45)",
+        },
+        {
+          n: 19,
+          title: "Sulfur storm",
+          blurb: "Storm-lavender gray (dusty, low chroma). Sulfur yellow fleck only.",
+          bg: "oklch(0.4 0.025 290)",
+          surface: "oklch(0.46 0.03 290)",
+          ink: "oklch(0.9 0.03 100)",
+          primary: "oklch(0.78 0.14 100)",
+          accent: "oklch(0.5 0.08 290)",
+        },
+        {
+          n: 20,
+          title: "Raw umber relay",
+          blurb: "Umber field + celadon edge. Transmission hut, not coffee brand.",
+          bg: "oklch(0.38 0.035 65)",
+          surface: "oklch(0.44 0.04 65)",
+          ink: "oklch(0.9 0.03 80)",
+          primary: "oklch(0.58 0.08 165)",
+          accent: "oklch(0.52 0.12 25)",
+        },
+      ];
+
+      const root = document.getElementById("palettes");
+      root.innerHTML = palettes
+        .map(
+          (p) => `
+        <article class="card">
+          <div class="stage" style="background:${p.bg};color:${p.ink}">
+            <div class="tag">SS-${String(p.n).padStart(2, "0")}</div>
+            <div>
+              <div class="name" style="color:${p.primary}">Safe<br/>Somewhere</div>
+              <p class="bit" style="color:${p.ink}">${p.blurb.split(".")[0]}.</p>
+            </div>
+            <div class="tag" style="color:${p.accent}">${p.title}</div>
+          </div>
+          <div class="info">
+            <strong>${p.n}. ${p.title}</strong>
+            <p>${p.blurb}</p>
+            <div class="sw">
+              <i style="background:${p.bg}" title="bg"></i>
+              <i style="background:${p.surface}" title="surface"></i>
+              <i style="background:${p.ink}" title="ink"></i>
+              <i style="background:${p.primary}" title="primary"></i>
+              <i style="background:${p.accent}" title="accent"></i>
+            </div>
+          </div>
+        </article>`
+        )
+        .join("");
+    </script>
+  </body>
+</html>

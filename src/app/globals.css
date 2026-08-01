@@ -1,0 +1,215 @@
+@import "tailwindcss";
+
+:root {
+  /* Locked · palette 15 Satellite dish */
+  --bg: oklch(0.48 0.02 95);
+  --surface: oklch(0.54 0.022 95);
+  --ink: oklch(0.14 0.02 250);
+  --muted: oklch(0.26 0.025 250);
+  --primary: oklch(0.48 0.15 25);
+  --accent: oklch(0.45 0.06 230);
+
+  --font-word: var(--font-six-caps), "Arial Narrow", sans-serif;
+  --font-body: var(--font-host-grotesk), system-ui, sans-serif;
+  --font-edge: var(--font-six-caps), "Arial Narrow", sans-serif;
+  --font-ui: var(--font-host-grotesk), system-ui, sans-serif;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-primary: var(--primary);
+  --color-accent: var(--accent);
+  --font-sans: var(--font-body);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ——— Stage materials ——— */
+.stage {
+  position: relative;
+  /* no isolation — soft-light wordmark must blend with matte (matches 06e mock) */
+  min-height: 100dvh;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.tex-matte,
+.tex-grain,
+.tex-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.tex-matte {
+  /* LOCKED background — do not modify without explicit ask */
+  z-index: 0;
+  opacity: 0.85;
+  filter: url(#matte-concrete);
+}
+
+.tex-grain {
+  z-index: 1;
+  opacity: 0.35;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 220px;
+  mix-blend-mode: soft-light;
+}
+
+.tex-vignette {
+  z-index: 1;
+  background: radial-gradient(
+    120% 90% at 50% 40%,
+    transparent 20%,
+    rgb(0 0 0 / 0.35) 100%
+  );
+  mix-blend-mode: multiply;
+}
+
+.stage-content {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100dvh;
+  padding: clamp(1.25rem, 3.5vw, 2.75rem);
+  pointer-events: none;
+}
+
+.stage-content a {
+  pointer-events: auto;
+}
+
+.edge {
+  font-family: var(--font-edge);
+  font-size: clamp(1.4rem, 4vw, 2.4rem);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.55;
+}
+
+.edges {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.edges--bottom {
+  align-items: flex-end;
+}
+
+.hero-spacer {
+  flex: 1;
+}
+
+/* 06e +2 — exact mock recipe: soft-light stamp + dark lip */
+.wordmark {
+  position: absolute;
+  left: clamp(1.25rem, 3.5vw, 2.75rem);
+  top: 0;
+  bottom: 0;
+  height: fit-content;
+  margin-block: auto;
+  z-index: 2;
+  margin-inline: 0;
+  font-family: var(--font-word);
+  font-size: clamp(5.5rem, 18vw, 11rem);
+  line-height: 0.86;
+  letter-spacing: 0.04em;
+  font-weight: 400;
+  text-wrap: balance;
+  pointer-events: none;
+  color: oklch(0.93 0.01 95);
+  mix-blend-mode: soft-light;
+  -webkit-text-stroke: 1.25px oklch(0.08 0.02 250 / 0.85);
+  text-shadow: 0 0 0.5px oklch(0.05 0.02 250 / 0.35);
+}
+
+.socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem 1.35rem;
+}
+
+.socials a {
+  color: var(--ink);
+  opacity: 0.72;
+  text-decoration: none;
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  transition: color 0.15s ease, opacity 0.15s ease;
+}
+
+.socials a:hover,
+.socials a:focus-visible {
+  color: var(--primary);
+  opacity: 1;
+  outline: none;
+}
+
+.socials a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+@keyframes ss-fade-up {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ss-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.anim-edges {
+  animation: ss-fade 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.anim-word {
+  animation: ss-fade-up 1s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+}
+
+.anim-socials {
+  animation: ss-fade 1s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-edges,
+  .anim-word,
+  .anim-socials {
+    animation: none;
+  }
+}

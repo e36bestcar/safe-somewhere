@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Safe-Somewhere — font picker R1</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Batched · 5 families each · Safe Somewhere R1 -->
+    <link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500;700;800&family=Familjen+Grotesk:wght@400;500;700;800&family=Onest:wght@400;500;700;800&family=Schibsted+Grotesk:wght@400;500;700;800&family=Hanken+Grotesk:wght@400;500;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Darker+Grotesque:wght@500;600;700;800;900&family=Red+Hat+Display:wght@400;500;700;900&family=Geologica:wght@400;500;700;900&family=Teachers:wght@400;500;700;800&family=Epilogue:wght@400;500;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Hedvig+Letters+Serif:opsz@12..24&family=Gloock&family=Spectral:wght@400;500;600;700&family=Bodoni+Moda:opsz,wght@6..96,400;6..96,700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Six+Caps&family=Syncopate:wght@400;700&family=Michroma&family=Pathway+Gothic+One&family=Saira+Condensed:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Yanone+Kaffeesatz:wght@500;600;700&family=Big+Shoulders+Display:wght@600;700;800&family=Unbounded:wght@400;500;700;800&family=Iceberg&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Kode+Mono:wght@400;500;700&family=Azeret+Mono:wght@400;500;700&family=Fragment+Mono&family=Chakra+Petch:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Handjet:wght@400;500;700&family=Anta&family=Micro+5&family=Martian+Mono:wght@400;500;700&family=Red+Hat+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+39+Text&family=Special+Elite&family=Oranienbaum&family=Cinzel:wght@400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        /* Satellite dish lean */
+        --bg: oklch(0.22 0.02 250);
+        --paper: oklch(0.9 0.02 95);
+        --ink: oklch(0.18 0.02 250);
+        --soft: oklch(0.65 0.02 95);
+        --accent: oklch(0.52 0.15 25);
+        --card: oklch(0.28 0.02 95);
+        --card-text: oklch(0.9 0.02 95);
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: system-ui, sans-serif;
+        color: var(--card-text);
+        background: var(--bg);
+      }
+      .bar {
+        position: sticky; top: 0; z-index: 30;
+        padding: 0.9rem 1.1rem;
+        background: oklch(0.18 0.02 95);
+        border-bottom: 2px solid var(--accent);
+        display: flex; flex-wrap: wrap; gap: 0.75rem;
+        align-items: flex-start; justify-content: space-between;
+      }
+      .bar h1 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+      }
+      .bar p {
+        margin: 0.25rem 0 0;
+        font-size: 0.78rem;
+        color: var(--soft);
+        max-width: 38rem;
+        line-height: 1.4;
+      }
+      .locked {
+        display: flex; flex-wrap: wrap; gap: 0.3rem;
+        margin-top: 0.5rem;
+      }
+      .locked span {
+        font-family: "Kode Mono", monospace;
+        font-size: 0.55rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.5rem;
+        border-radius: 999px;
+        background: #2a2a2a;
+        color: var(--soft);
+        border: 1px solid #444;
+      }
+      .locked span.warn {
+        background: var(--accent);
+        color: var(--ink);
+        border-color: var(--accent);
+      }
+      .picks { display: flex; flex-wrap: wrap; gap: 0.3rem; max-width: 22rem; }
+      .pick {
+        font-family: "Kode Mono", monospace;
+        font-size: 0.55rem;
+        padding: 0.22rem 0.45rem;
+        border-radius: 999px;
+        background: #2a2a2a;
+        color: var(--paper);
+        border: 1px solid #444;
+        cursor: pointer;
+      }
+      .btn {
+        font-weight: 700;
+        border: 0;
+        border-radius: 999px;
+        padding: 0.45rem 0.85rem;
+        background: var(--accent);
+        color: var(--ink);
+        cursor: pointer;
+        font-size: 0.8rem;
+      }
+      .wrap { max-width: 1100px; margin: 0 auto; padding: 1rem 1rem 5rem; }
+      .note {
+        margin: 0 0 1rem;
+        padding: 1rem;
+        background: oklch(0.25 0.02 95);
+        border: 1px solid #333;
+        border-radius: 1rem;
+        font-size: 0.85rem;
+        line-height: 1.45;
+        color: #b8b4ac;
+      }
+      .note strong { color: var(--accent); }
+      .filters {
+        display: flex; flex-wrap: wrap; gap: 0.35rem;
+        margin-bottom: 1rem;
+      }
+      .filters button {
+        appearance: none;
+        border: 1px solid #444;
+        border-radius: 999px;
+        background: #1a1a1a;
+        color: #ccc;
+        padding: 0.35rem 0.7rem;
+        font-family: "Kode Mono", monospace;
+        font-size: 0.55rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+      .filters button.is-on {
+        background: var(--accent);
+        color: var(--ink);
+        border-color: var(--accent);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 0.75rem;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid #2a2a2a;
+        border-radius: 1rem;
+        overflow: hidden;
+        cursor: pointer;
+        transition: border-color 0.15s, transform 0.15s;
+      }
+      .card:hover { border-color: #555; transform: translateY(-2px); }
+      .card.is-on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+      .card__head {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 0.5rem 0.75rem;
+        background: oklch(0.22 0.02 95);
+        font-family: "Kode Mono", monospace;
+        font-size: 0.55rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--soft);
+      }
+      .status { padding: 0.12rem 0.35rem; border-radius: 999px; font-size: 0.5rem; }
+      .status.ok { background: #1a3d1a; color: #8f8; }
+      .status.bad { background: #3d1a1a; color: #f88; }
+      .card__sample {
+        padding: 1rem 0.85rem 0.35rem;
+        font-size: clamp(2rem, 7vw, 3.1rem);
+        line-height: 0.95;
+        letter-spacing: -0.02em;
+        color: var(--paper);
+      }
+      .card__sub {
+        padding: 0 0.85rem 0.75rem;
+        font-size: 0.9rem;
+        color: #999;
+        line-height: 1.35;
+      }
+      .card__tag {
+        padding: 0.55rem 0.75rem;
+        border-top: 1px solid #2a2a2a;
+        font-size: 0.72rem;
+        color: #777;
+        line-height: 1.35;
+      }
+      .card__tag em {
+        font-style: normal;
+        color: var(--accent);
+        font-family: "Kode Mono", monospace;
+        font-size: 0.58rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="bar">
+      <div style="flex:1 1 20rem">
+        <h1>Safe-Somewhere · font R1</h1>
+        <p id="loadMsg">Loading… Voice: ominous · quiet · signal. Matte room + chrome wordmark. Not Who’s John.</p>
+        <div class="locked">
+          <span class="warn">avoid Syne</span>
+          <span class="warn">avoid Bebas</span>
+          <span>palette · 15 satellite</span>
+          <span>matte + chrome</span>
+        </div>
+      </div>
+      <div class="picks" id="picks"></div>
+      <button type="button" class="btn" id="copyBtn">Copy picks</button>
+    </header>
+
+    <div class="wrap">
+      <p class="note">
+        <strong>R1 goal:</strong> reaction, not final pairing. Sample is the brand name.
+        Tuned for transmission plates, record sleeves, kntxt-style edge labels, chrome wordmarks —
+        not wellness serifs, not techno-club Orbitron spam, not the Who’s John stack.
+        Bebas Neue is included only as a <em>foil</em> (mark FAIL-adjacent / don’t pick).
+        Only trust <strong>LOADED</strong>. Pick 4–8, copy, send back.
+      </p>
+
+      <div class="filters" id="filters">
+        <button type="button" class="is-on" data-filter="all">All</button>
+        <button type="button" data-filter="neo">Body / grotesk</button>
+        <button type="button" data-filter="display">Wordmark / display</button>
+        <button type="button" data-filter="editorial">Quiet serif</button>
+        <button type="button" data-filter="tech">Edge / mono</button>
+        <button type="button" data-filter="signal">Signal / weird</button>
+      </div>
+
+      <div class="grid" id="grid"></div>
+    </div>
+
+    <script>
+      const faces = [
+        // Body / grotesk — quiet structure
+        { id: "01", family: "Host Grotesk", tag: "neo", sample: "Safe Somewhere", sub: "a place to lower your guard", note: "Foundry-feel grotesk — quiet body, not startup." },
+        { id: "02", family: "Familjen Grotesk", tag: "neo", sample: "Safe Somewhere", sub: "records for returning", note: "Swedish cultural/fashion grotesk." },
+        { id: "03", family: "Onest", tag: "neo", sample: "Safe Somewhere", sub: "signal still there", note: "EU studio neo-grotesk — clean, not Inter." },
+        { id: "04", family: "Schibsted Grotesk", tag: "neo", sample: "Safe Somewhere", sub: "collective / imprint", note: "News org grotesk — institutional calm." },
+        { id: "05", family: "Hanken Grotesk", tag: "neo", sample: "Safe Somewhere", sub: "not a cure. a refuge.", note: "Slightly odd grotesk — good with chrome display." },
+        { id: "06", family: "Darker Grotesque", tag: "neo", sample: "Safe Somewhere", sub: "somewhere is", note: "Tall x-height — strong at mid sizes." },
+        { id: "07", family: "Red Hat Display", tag: "neo", sample: "Safe Somewhere", sub: "open source quiet", note: "Open studio stack — readable display/body." },
+        { id: "08", family: "Geologica", tag: "neo", sample: "Safe Somewhere", sub: "soft without spa", note: "Variable rounded — warmth without wellness." },
+        { id: "09", family: "Teachers", tag: "neo", sample: "Safe Somewhere", sub: "honest sound", note: "Odd proportions — human, not corporate." },
+        { id: "10", family: "Epilogue", tag: "neo", sample: "Safe Somewhere", sub: "stay a while", note: "Workhorse with character for long lines." },
+
+        // Quiet serif — philosophy moments (avoid Fraunces/Newsreader lane as default)
+        { id: "11", family: "Young Serif", tag: "editorial", sample: "Safe Somewhere", sub: "music can be somewhere", note: "Contemporary serif — not old-money magazine." },
+        { id: "12", family: "Hedvig Letters Serif", tag: "editorial", sample: "Safe Somewhere", sub: "permission to feel", note: "Scandi editorial — name/line only." },
+        { id: "13", family: "Gloock", tag: "editorial", sample: "Safe Somewhere", sub: "visibility without betrayal", note: "Display serif with bite — philosophy pull-quote." },
+        { id: "14", family: "Spectral", tag: "editorial", sample: "Safe Somewhere", sub: "six minutes inside a song", note: "Readable bookish — body for About later." },
+        { id: "15", family: "Oranienbaum", tag: "editorial", sample: "Safe Somewhere", sub: "a quieter part of the internet", note: "Didone-ish — night editorial, sparse use." },
+        { id: "16", family: "Bodoni Moda", tag: "editorial", sample: "Safe Somewhere", sub: "seen without being consumed", note: "High-contrast didone — chrome serif experiment." },
+        { id: "17", family: "Cinzel", tag: "editorial", sample: "SAFE SOMEWHERE", sub: "inscription / plaque", note: "Stone-carved caps — architecture, not spa." },
+
+        // Wordmark / display — kntxt edges + chrome hero
+        { id: "18", family: "Six Caps", tag: "display", sample: "SAFE SOMEWHERE", sub: "edge label / catalog", note: "Ultra compressed — kntxt corner text." },
+        { id: "19", family: "Syncopate", tag: "display", sample: "SAFE", sub: "SOMEWHERE", note: "Wide tracked caps — lookbook / transmission." },
+        { id: "20", family: "Michroma", tag: "display", sample: "SAFE SOMEWHERE", sub: "instrument panel wordmark", note: "70s technical display — matte+chrome friend." },
+        { id: "21", family: "Pathway Gothic One", tag: "display", sample: "SAFE SOMEWHERE", sub: "narrow gothic", note: "Cheap effective narrow — edge strips." },
+        { id: "22", family: "Saira Condensed", tag: "display", sample: "Safe Somewhere", sub: "dense headers", note: "Condensed sans — archive headers later." },
+        { id: "23", family: "Barlow Condensed", tag: "display", sample: "Safe Somewhere", sub: "industrial poster", note: "Tour/industrial condensed — not Bebas clone." },
+        { id: "24", family: "Yanone Kaffeesatz", tag: "display", sample: "Safe Somewhere", sub: "late-night diner type", note: "Condensed humanist — lived-in room." },
+        { id: "25", family: "Big Shoulders Display", tag: "display", sample: "SAFE", sub: "SOMEWHERE", note: "Chicago poster — strong wordmark candidate." },
+        { id: "26", family: "Unbounded", tag: "display", sample: "Safe Somewhere", sub: "soft technical display", note: "Rounded techno without club neon." },
+        { id: "27", family: "Iceberg", tag: "display", sample: "SAFE SOMEWHERE", sub: "deco night", note: "Art deco caps — event / night architecture." },
+
+        // Edge / mono — catalog numbers, corners
+        { id: "28", family: "Kode Mono", tag: "tech", sample: "SS-015", sub: "safe.somewhere", note: "Soft mono — socials / IDs." },
+        { id: "29", family: "Azeret Mono", tag: "tech", sample: "CAT-000", sub: "1996→26", note: "Geometric mono — year / catalog." },
+        { id: "30", family: "Fragment Mono", tag: "tech", sample: "SIGNAL", sub: "ig / tt / yt", note: "Sharp mono — technical edge labels." },
+        { id: "31", family: "Chakra Petch", tag: "tech", sample: "Safe Somewhere", sub: "cyber without glitch", note: "Thai tech sans — UI labels, not body." },
+        { id: "32", family: "Share Tech Mono", tag: "tech", sample: "TX-01", sub: "transmission", note: "Classic terminal mono — radio tower." },
+        { id: "33", family: "Martian Mono", tag: "tech", sample: "SAFE", sub: "somewhere", note: "Wide tech mono — distinctive IDs." },
+        { id: "34", family: "Red Hat Mono", tag: "tech", sample: "ss://refuge", sub: "open mono", note: "Pairs with Red Hat Display if that wins." },
+        { id: "35", family: "Handjet", tag: "tech", sample: "SS-15", sub: "dot matrix", note: "Instrument panel — catalog / coordinates." },
+
+        // Signal / weird — sparse accent only
+        { id: "36", family: "Anta", tag: "signal", sample: "SS", sub: "logo glyph only", note: "Sci-fi mark — one glyph, never body." },
+        { id: "37", family: "Micro 5", tag: "signal", sample: "SS", sub: "micro corner", note: "Tiny pixel — easter egg edges." },
+        { id: "38", family: "Special Elite", tag: "signal", sample: "Safe Somewhere", sub: "typewriter carbon", note: "Worn typewriter — liner notes vibe." },
+        { id: "39", family: "Libre Barcode 39 Text", tag: "signal", sample: "SAFE", sub: "barcode ghost", note: "Weird catalog flex — use once or never." },
+        { id: "40", family: "Bebas Neue", tag: "signal", sample: "SAFE SOMEWHERE", sub: "FOIL — Who’s John adjacent", note: "Included as anti-pick. Do not lock." },
+      ];
+
+      const list = faces;
+      const picked = new Set();
+      let filter = "all";
+      const grid = document.getElementById("grid");
+      const picksEl = document.getElementById("picks");
+      const loadMsg = document.getElementById("loadMsg");
+      let statusesCache = {};
+
+      async function fontLoaded(family) {
+        try {
+          await document.fonts.load(`700 48px "${family}"`);
+          await document.fonts.load(`400 48px "${family}"`);
+          return document.fonts.check(`700 48px "${family}"`) || document.fonts.check(`400 48px "${family}"`);
+        } catch {
+          return false;
+        }
+      }
+
+      function visible() {
+        return filter === "all" ? list : list.filter((f) => f.tag === filter);
+      }
+
+      function renderPicks() {
+        picksEl.innerHTML = picked.size
+          ? [...picked]
+              .map((id) => {
+                const f = list.find((x) => x.id === id);
+                return `<button type="button" class="pick" data-x="${id}">${id} ${f.family} ×</button>`;
+              })
+              .join("")
+          : `<span class="pick" style="cursor:default;opacity:.5">Pick 4–8</span>`;
+      }
+
+      function paint(statuses) {
+        grid.innerHTML = visible()
+          .map((f) => {
+            const ok = statuses[f.id];
+            return `<article class="card ${picked.has(f.id) ? "is-on" : ""}" data-id="${f.id}">
+              <div class="card__head">
+                <span>${f.id} · ${f.tag}</span>
+                <span class="status ${ok ? "ok" : "bad"}">${ok ? "LOADED" : "FAIL"}</span>
+              </div>
+              <div class="card__sample" style='font-family:"${f.family}", fantasy'>${f.sample}</div>
+              <div class="card__sub" style='font-family:"${f.family}", fantasy'>${f.sub}</div>
+              <p class="card__tag"><em>${f.family}</em> — ${f.note}</p>
+            </article>`;
+          })
+          .join("");
+      }
+
+      grid.addEventListener("click", (e) => {
+        const card = e.target.closest(".card");
+        if (!card) return;
+        const id = card.dataset.id;
+        if (picked.has(id)) picked.delete(id);
+        else picked.add(id);
+        paint(statusesCache);
+        renderPicks();
+      });
+
+      picksEl.addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-x]");
+        if (!btn) return;
+        picked.delete(btn.dataset.x);
+        paint(statusesCache);
+        renderPicks();
+      });
+
+      document.getElementById("filters").addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-filter]");
+        if (!btn) return;
+        filter = btn.dataset.filter;
+        document.querySelectorAll("#filters button").forEach((b) => b.classList.toggle("is-on", b === btn));
+        paint(statusesCache);
+      });
+
+      document.getElementById("copyBtn").addEventListener("click", async () => {
+        const header = "Safe-Somewhere font R1 picks";
+        const lines = [...picked].map((id) => {
+          const f = list.find((x) => x.id === id);
+          return `${id} ${f.family} · ${f.tag}`;
+        });
+        await navigator.clipboard.writeText([header, ...lines].join("\n"));
+        loadMsg.textContent = `Copied ${picked.size} picks — paste back here`;
+      });
+
+      (async () => {
+        await document.fonts.ready;
+        const statuses = {};
+        let ok = 0;
+        for (const f of list) {
+          const loaded = await fontLoaded(f.family);
+          statuses[f.id] = loaded;
+          if (loaded) ok++;
+        }
+        statusesCache = statuses;
+        loadMsg.textContent = `${ok}/${list.length} loaded. Filter by role. Skip Bebas (foil).`;
+        paint(statuses);
+        renderPicks();
+      })();
+    </script>
+  </body>
+</html>

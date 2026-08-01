@@ -1,0 +1,16 @@
+# Never ship local labs / private notes to the Vercel build context
+moodboards
+moodboards/**
+moodboards/_shots
+PRODUCT.md
+DESIGN.md
+SECURITY.md
+**/.DS_Store
+*.pem
+.env*
+.git
+.cursor
+AGENTS.md
+CLAUDE.md
+visual-lock.sha256
+scripts

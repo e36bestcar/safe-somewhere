@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Safe-Somewhere — chrome examples (5)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500;600&family=Six+Caps&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: oklch(0.48 0.02 95);
+        --ink: oklch(0.14 0.02 250);
+        --panel: #0e0e10;
+        --soft: #9a9690;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--panel);
+        color: #eee;
+        font-family: "Host Grotesk", system-ui, sans-serif;
+        padding: clamp(1rem, 3vw, 2rem);
+      }
+      h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.15rem;
+        font-weight: 600;
+      }
+      .lede {
+        margin: 0 0 1.5rem;
+        max-width: 44rem;
+        color: var(--soft);
+        font-size: 0.88rem;
+        line-height: 1.5;
+      }
+      .grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      }
+      .card {
+        border: 1px solid rgb(255 255 255 / 0.1);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .stage {
+        position: relative;
+        isolation: isolate;
+        aspect-ratio: 5 / 4;
+        overflow: hidden;
+        background: var(--bg);
+      }
+      /* LOCKED concrete — same recipe as site, mock only */
+      .tex-matte {
+        position: absolute;
+        inset: 0;
+        opacity: 0.85;
+        filter: url(#matte-concrete);
+        pointer-events: none;
+      }
+      .tex-grain {
+        position: absolute;
+        inset: 0;
+        opacity: 0.35;
+        pointer-events: none;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        background-size: 220px;
+        mix-blend-mode: soft-light;
+      }
+      .tex-vignette {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(
+          120% 90% at 50% 40%,
+          transparent 20%,
+          rgb(0 0 0 / 0.35) 100%
+        );
+        mix-blend-mode: multiply;
+      }
+      .mark {
+        position: relative;
+        z-index: 2;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        padding: 1.25rem;
+      }
+      .mark h2 {
+        margin: 0;
+        font-family: "Six Caps", sans-serif;
+        font-size: clamp(3.2rem, 10vw, 4.6rem);
+        line-height: 0.88;
+        letter-spacing: 0.04em;
+        font-weight: 400;
+      }
+      .meta {
+        padding: 0.85rem 1rem 1rem;
+        background: #121214;
+      }
+      .meta strong {
+        display: block;
+        font-size: 0.85rem;
+        margin-bottom: 0.25rem;
+      }
+      .meta p {
+        margin: 0;
+        font-size: 0.72rem;
+        color: var(--soft);
+        line-height: 1.4;
+      }
+      .meta .tag {
+        display: inline-block;
+        margin-top: 0.55rem;
+        font-size: 0.58rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #c9a0e8;
+      }
+
+      /* ——— 1 Env-stripe violet (Paper / Argent recipe, CSS) ——— */
+      .c1 {
+        background-image: repeating-linear-gradient(
+          -18deg,
+          #0c0412 0px,
+          #1a0a22 6px,
+          #3a1848 11px,
+          #e8d4f5 12.5px,
+          #7a3d9a 15px,
+          #14081c 21px,
+          #c9a0e0 22.5px,
+          #2a1038 26px,
+          #0c0412 32px
+        );
+        background-size: 100% 140%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        filter: drop-shadow(0 1px 0 rgb(0 0 0 / 0.55))
+          drop-shadow(0 14px 4px rgb(20 0 40 / 0.4));
+      }
+
+      /* ——— 2 Liquid mercury violet (animated env) ——— */
+      .c2 {
+        background-image: repeating-linear-gradient(
+          12deg,
+          #08040e 0%,
+          #2a0e3a 8%,
+          #f2e8ff 11%,
+          #5a2880 16%,
+          #12081c 28%,
+          #d4b0f0 31%,
+          #1e0c2c 42%,
+          #08040e 55%,
+          #a070c8 58%,
+          #180a24 70%,
+          #f8f0ff 73%,
+          #08040e 100%
+        );
+        background-size: 220% 220%;
+        animation: liquid-shift 7s linear infinite;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        filter: drop-shadow(0 1px 0 rgb(0 0 0 / 0.6))
+          drop-shadow(0 16px 5px rgb(40 0 60 / 0.45));
+      }
+      @keyframes liquid-shift {
+        to {
+          background-position: 100% 40%;
+        }
+      }
+
+      /* ——— 3 Obsidian amethyst (almost black, thin hot specular) ——— */
+      .c3 {
+        background-image:
+          linear-gradient(
+            118deg,
+            transparent 36%,
+            rgb(255 255 255 / 0.85) 48%,
+            rgb(230 200 255 / 0.35) 51%,
+            transparent 62%
+          ),
+          linear-gradient(
+            168deg,
+            #2a1838 0%,
+            #0e0614 22%,
+            #1a0c24 40%,
+            #0a040e 55%,
+            #3a2048 72%,
+            #100818 100%
+          );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        filter: drop-shadow(0 1px 0 rgb(0 0 0 / 0.7))
+          drop-shadow(0 0 18px rgb(120 60 180 / 0.25))
+          drop-shadow(0 18px 6px rgb(0 0 0 / 0.45));
+      }
+
+      /* ——— 4 Prism fringe (chromatic — modern chrome tell) ——— */
+      .c4-wrap {
+        position: relative;
+        display: inline-block;
+      }
+      .c4-wrap .ghost {
+        position: absolute;
+        inset: 0;
+        font: inherit;
+        letter-spacing: inherit;
+        line-height: inherit;
+        pointer-events: none;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .c4-wrap .r {
+        transform: translate(-1.5px, 0);
+        background: #ff4ad2;
+        opacity: 0.55;
+        mix-blend-mode: screen;
+        filter: blur(0.3px);
+      }
+      .c4-wrap .b {
+        transform: translate(1.5px, 0);
+        background: #5ad0ff;
+        opacity: 0.5;
+        mix-blend-mode: screen;
+        filter: blur(0.3px);
+      }
+      .c4 {
+        position: relative;
+        background-image: repeating-linear-gradient(
+          -22deg,
+          #100818 0px,
+          #281030 7px,
+          #efe6ff 9px,
+          #6a3890 13px,
+          #0c0610 20px,
+          #d8b8f0 22px,
+          #100818 28px
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        filter: drop-shadow(0 14px 4px rgb(0 0 0 / 0.4));
+      }
+
+      /* ——— 5 Canvas liquid-metal (Paper-style stripe shader, WebGL) ——— */
+      .c5-stage .mark {
+        padding: 0;
+      }
+      #glChrome {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      .c5-fallback {
+        display: none;
+        padding: 1.25rem;
+        font-family: "Six Caps", sans-serif;
+        font-size: clamp(3.2rem, 10vw, 4.6rem);
+        line-height: 0.88;
+        letter-spacing: 0.04em;
+        background: repeating-linear-gradient(
+          -18deg,
+          #0c0412,
+          #3a1848 40%,
+          #f0e4ff 48%,
+          #0c0412
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .c2 {
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <svg width="0" height="0" aria-hidden style="position: absolute">
+      <defs>
+        <filter
+          id="matte-concrete"
+          x="0%"
+          y="0%"
+          width="100%"
+          height="100%"
+          color-interpolation-filters="sRGB"
+        >
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.75"
+            numOctaves="4"
+            seed="7"
+            result="noise"
+          />
+          <feDiffuseLighting
+            in="noise"
+            lighting-color="#ffffff"
+            surfaceScale="1.4"
+            result="light"
+          >
+            <feDistantLight azimuth="135" elevation="48" />
+          </feDiffuseLighting>
+          <feComponentTransfer in="light">
+            <feFuncR type="linear" slope="0.85" intercept="0.05" />
+            <feFuncG type="linear" slope="0.85" intercept="0.05" />
+            <feFuncB type="linear" slope="0.85" intercept="0.05" />
+          </feComponentTransfer>
+        </filter>
+      </defs>
+    </svg>
+
+    <h1>Chrome examples · Safe Somewhere</h1>
+    <p class="lede">
+      Site background is untouched — this is a mock lab only. Five cutting-edge
+      purple-metal directions (not 2003 vertical gradients). Inspired by modern
+      liquid-metal / env-stripe chrome (Paper shader ·
+      <a href="https://github.com/seangeng/argent" style="color: #c9a0e8"
+        >argent</a
+      >
+      · CrazyGL). Reply with a number.
+    </p>
+
+    <div class="grid">
+      <article class="card">
+        <div class="stage">
+          <div class="tex-matte"></div>
+          <div class="tex-grain"></div>
+          <div class="tex-vignette"></div>
+          <div class="mark">
+            <h2 class="c1">Safe<br />Somewhere</h2>
+          </div>
+        </div>
+        <div class="meta">
+          <strong>1 · Env-stripe violet</strong>
+          <p>
+            Fake environment map as hard light/dark stripes bent across the
+            glyphs — the look behind current liquid-chrome logos. Still, sharp,
+            expensive-feeling without WebGL.
+          </p>
+          <span class="tag">CSS · Paper recipe</span>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="stage">
+          <div class="tex-matte"></div>
+          <div class="tex-grain"></div>
+          <div class="tex-vignette"></div>
+          <div class="mark">
+            <h2 class="c2">Safe<br />Somewhere</h2>
+          </div>
+        </div>
+        <div class="meta">
+          <strong>2 · Liquid mercury violet</strong>
+          <p>
+            Same stripe language, slow-flowing. Reads as molten / living metal.
+            Closest CSS stand-in for argent / liquid-metal motion.
+          </p>
+          <span class="tag">CSS · animated</span>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="stage">
+          <div class="tex-matte"></div>
+          <div class="tex-grain"></div>
+          <div class="tex-vignette"></div>
+          <div class="mark">
+            <h2 class="c3">Safe<br />Somewhere</h2>
+          </div>
+        </div>
+        <div class="meta">
+          <strong>3 · Obsidian amethyst</strong>
+          <p>
+            Near-black purple body with one hot specular rake. Quiet, ominous,
+            luxury-object — not carnival chrome.
+          </p>
+          <span class="tag">CSS · dark polish</span>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="stage">
+          <div class="tex-matte"></div>
+          <div class="tex-grain"></div>
+          <div class="tex-vignette"></div>
+          <div class="mark">
+            <div class="c4-wrap">
+              <span class="ghost r" aria-hidden>Safe<br />Somewhere</span>
+              <span class="ghost b" aria-hidden>Safe<br />Somewhere</span>
+              <h2 class="c4">Safe<br />Somewhere</h2>
+            </div>
+          </div>
+        </div>
+        <div class="meta">
+          <strong>4 · Prism fringe</strong>
+          <p>
+            Env stripes plus red/cyan channel offset — the chromatic edge that
+            makes modern chrome feel optical, not flat fill.
+          </p>
+          <span class="tag">CSS · aberration</span>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="stage c5-stage">
+          <div class="tex-matte"></div>
+          <div class="tex-grain"></div>
+          <div class="tex-vignette"></div>
+          <div class="mark">
+            <canvas id="glChrome"></canvas>
+            <h2 class="c5-fallback">Safe<br />Somewhere</h2>
+          </div>
+        </div>
+        <div class="meta">
+          <strong>5 · WebGL liquid metal</strong>
+          <p>
+            Real-time stripe env + noise liquify in the glyphs (Paper-style).
+            Heaviest option — cutting-edge when you want the full thing.
+          </p>
+          <span class="tag">WebGL · shader</span>
+        </div>
+      </article>
+    </div>
+
+    <script>
+      // Minimal Paper-inspired liquid metal text (violet) — mock only
+      (function () {
+        const canvas = document.getElementById("glChrome");
+        const gl =
+          canvas.getContext("webgl2", { premultipliedAlpha: false }) ||
+          canvas.getContext("webgl", { premultipliedAlpha: false });
+        const fallback = document.querySelector(".c5-fallback");
+        if (!gl) {
+          canvas.style.display = "none";
+          fallback.style.display = "block";
+          return;
+        }
+
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        function resize() {
+          const r = canvas.parentElement.getBoundingClientRect();
+          canvas.width = Math.floor(r.width * dpr);
+          canvas.height = Math.floor(r.height * dpr);
+          canvas.style.width = r.width + "px";
+          canvas.style.height = r.height + "px";
+          gl.viewport(0, 0, canvas.width, canvas.height);
+        }
+        resize();
+
+        // Rasterize Six Caps text to alpha mask
+        const mask = document.createElement("canvas");
+        const mctx = mask.getContext("2d");
+        function paintMask() {
+          mask.width = canvas.width;
+          mask.height = canvas.height;
+          mctx.clearRect(0, 0, mask.width, mask.height);
+          mctx.fillStyle = "#fff";
+          mctx.textAlign = "left";
+          mctx.textBaseline = "middle";
+          const size = Math.min(mask.height * 0.38, mask.width * 0.22);
+          mctx.font = `400 ${size}px "Six Caps", sans-serif`;
+          const x = mask.width * 0.08;
+          const y = mask.height * 0.48;
+          mctx.fillText("SAFE", x, y - size * 0.42);
+          mctx.fillText("SOMEWHERE", x, y + size * 0.52);
+        }
+        paintMask();
+
+        const vs = `#version 300 es
+        in vec2 a; void main(){ gl_Position = vec4(a,0.,1.); }`;
+        const fs = `#version 300 es
+        precision highp float;
+        uniform sampler2D uMask;
+        uniform vec2 uRes;
+        uniform float uTime;
+        out vec4 o;
+        float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453); }
+        float noise(vec2 p){
+          vec2 i = floor(p), f = fract(p);
+          float a = hash(i), b = hash(i+vec2(1.,0.));
+          float c = hash(i+vec2(0.,1.)), d = hash(i+vec2(1.,1.));
+          vec2 u = f*f*(3.-2.*f);
+          return mix(a,b,u.x)+(c-a)*u.y*(1.-u.x)+(d-b)*u.x*u.y;
+        }
+        void main(){
+          vec2 uv = gl_FragCoord.xy / uRes;
+          float m = texture(uMask, vec2(uv.x, 1.-uv.y)).a;
+          if(m < 0.08){ discard; }
+          // curvature-ish warp inside glyph
+          float n = noise(uv * 4.5 + uTime * 0.15) * 0.08;
+          float stripe = uv.x * 9.0 - uv.y * 3.2 + n + uTime * 0.35;
+          float band = abs(fract(stripe) - 0.5);
+          // env ramp: dark violet → hot specular → deep
+          vec3 dark = vec3(0.05, 0.02, 0.09);
+          vec3 mid = vec3(0.35, 0.12, 0.48);
+          vec3 hot = vec3(0.95, 0.88, 1.0);
+          float k = smoothstep(0.0, 0.22, band);
+          vec3 col = mix(hot, mid, k);
+          col = mix(col, dark, smoothstep(0.18, 0.48, band));
+          // chromatic fringe
+          float fringe = smoothstep(0.35, 0.5, band) * 0.15;
+          col.r += fringe * 0.35;
+          col.b += fringe * 0.2;
+          float edge = smoothstep(0.08, 0.45, m);
+          o = vec4(col * edge, edge);
+        }`;
+
+        function compile(type, src) {
+          const s = gl.createShader(type);
+          gl.shaderSource(s, src);
+          gl.compileShader(s);
+          if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+            console.warn(gl.getShaderInfoLog(s));
+            return null;
+          }
+          return s;
+        }
+        // WebGL1 fallback shaders if needed
+        let prog;
+        const is2 = gl instanceof WebGL2RenderingContext;
+        if (is2) {
+          const p = gl.createProgram();
+          const a = compile(gl.VERTEX_SHADER, vs);
+          const b = compile(gl.FRAGMENT_SHADER, fs);
+          if (!a || !b) {
+            canvas.style.display = "none";
+            fallback.style.display = "block";
+            return;
+          }
+          gl.attachShader(p, a);
+          gl.attachShader(p, b);
+          gl.linkProgram(p);
+          prog = p;
+        } else {
+          canvas.style.display = "none";
+          fallback.style.display = "block";
+          return;
+        }
+
+        const buf = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+        gl.bufferData(
+          gl.ARRAY_BUFFER,
+          new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]),
+          gl.STATIC_DRAW,
+        );
+        const loc = gl.getAttribLocation(prog, "a");
+        gl.enableVertexAttribArray(loc);
+        gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+        const tex = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, mask);
+
+        gl.useProgram(prog);
+        const uMask = gl.getUniformLocation(prog, "uMask");
+        const uRes = gl.getUniformLocation(prog, "uRes");
+        const uTime = gl.getUniformLocation(prog, "uTime");
+        gl.uniform1i(uMask, 0);
+
+        document.fonts.ready.then(() => {
+          paintMask();
+          gl.bindTexture(gl.TEXTURE_2D, tex);
+          gl.texImage2D(
+            gl.TEXTURE_2D,
+            0,
+            gl.RGBA,
+            gl.RGBA,
+            gl.UNSIGNED_BYTE,
+            mask,
+          );
+        });
+
+        let start = performance.now();
+        function frame(t) {
+          gl.uniform2f(uRes, canvas.width, canvas.height);
+          gl.uniform1f(uTime, (t - start) / 1000);
+          gl.enable(gl.BLEND);
+          gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+          gl.clearColor(0, 0, 0, 0);
+          gl.clear(gl.COLOR_BUFFER_BIT);
+          gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+          requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+
+        window.addEventListener("resize", () => {
+          resize();
+          paintMask();
+          gl.bindTexture(gl.TEXTURE_2D, tex);
+          gl.texImage2D(
+            gl.TEXTURE_2D,
+            0,
+            gl.RGBA,
+            gl.RGBA,
+            gl.UNSIGNED_BYTE,
+            mask,
+          );
+        });
+      })();
+    </script>
+  </body>
+</html>

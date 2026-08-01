@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Safe-Somewhere — palette options</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --ink: oklch(0.92 0.01 100);
+        --muted: oklch(0.7 0.01 100);
+        --page: oklch(0.18 0 0);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--page);
+        color: var(--ink);
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        padding: clamp(1.5rem, 4vw, 3rem);
+      }
+      h1 {
+        font-weight: 500;
+        font-size: clamp(1.25rem, 2vw, 1.5rem);
+        letter-spacing: 0.02em;
+        margin: 0 0 0.35rem;
+      }
+      .lede {
+        color: var(--muted);
+        max-width: 42rem;
+        line-height: 1.5;
+        margin: 0 0 2.5rem;
+        font-size: 0.95rem;
+      }
+      .grid {
+        display: grid;
+        gap: 1.5rem;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      }
+      .option {
+        border: 1px solid oklch(1 0 0 / 0.08);
+        overflow: hidden;
+      }
+      .preview {
+        aspect-ratio: 4 / 5;
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+      }
+      .preview .brand {
+        font-size: clamp(1.6rem, 3vw, 2.1rem);
+        font-weight: 450;
+        letter-spacing: -0.03em;
+        line-height: 1.05;
+      }
+      .preview .line {
+        font-size: 0.85rem;
+        line-height: 1.45;
+        max-width: 18ch;
+        opacity: 0.72;
+      }
+      .preview .edge {
+        position: absolute;
+        font-size: 0.65rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        opacity: 0.45;
+      }
+      .edge.tl {
+        top: 1rem;
+        left: 1rem;
+      }
+      .edge.tr {
+        top: 1rem;
+        right: 1rem;
+      }
+      .edge.bl {
+        bottom: 1rem;
+        left: 1rem;
+      }
+      .edge.br {
+        bottom: 1rem;
+        right: 1rem;
+      }
+      .meta {
+        padding: 1rem 1.15rem 1.25rem;
+        background: oklch(0.14 0 0);
+      }
+      .meta h2 {
+        margin: 0 0 0.35rem;
+        font-size: 0.95rem;
+        font-weight: 560;
+      }
+      .meta p {
+        margin: 0 0 0.9rem;
+        color: var(--muted);
+        font-size: 0.8rem;
+        line-height: 1.45;
+      }
+      .swatches {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 0.35rem;
+      }
+      .swatch {
+        aspect-ratio: 1;
+        border: 1px solid oklch(1 0 0 / 0.1);
+      }
+      .swatch span {
+        display: block;
+        font-size: 0.55rem;
+        margin-top: 0.35rem;
+        color: var(--muted);
+        letter-spacing: 0.04em;
+      }
+      .swatch-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+      }
+      .pick {
+        margin-top: 0.85rem;
+        font-size: 0.75rem;
+        color: oklch(0.78 0.02 100);
+      }
+
+      /* A — Wet concrete / transmission */
+      .a .preview {
+        background: oklch(0.42 0.012 230);
+        color: oklch(0.93 0.01 230);
+      }
+      .a .brand {
+        color: oklch(0.94 0.015 230);
+      }
+      .a .accent-dot {
+        width: 0.55rem;
+        height: 0.55rem;
+        border-radius: 50%;
+        background: oklch(0.58 0.09 160);
+        align-self: flex-end;
+      }
+
+      /* B — Lamp room / oxidized */
+      .b .preview {
+        background: oklch(0.38 0.018 70);
+        color: oklch(0.9 0.02 75);
+      }
+      .b .brand {
+        color: oklch(0.91 0.025 75);
+      }
+      .b .accent-dot {
+        width: 0.55rem;
+        height: 0.55rem;
+        border-radius: 50%;
+        background: oklch(0.62 0.11 55);
+        align-self: flex-end;
+      }
+
+      /* C — Fog platform / forest signal */
+      .c .preview {
+        background: oklch(0.4 0.02 160);
+        color: oklch(0.9 0.02 150);
+      }
+      .c .brand {
+        color: oklch(0.92 0.025 150);
+      }
+      .c .accent-dot {
+        width: 0.55rem;
+        height: 0.55rem;
+        border-radius: 50%;
+        background: oklch(0.55 0.08 25);
+        align-self: flex-end;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Safe-Somewhere — dim mid-tone options</h1>
+    <p class="lede">
+      Not the site — just three dim mid-tone directions. Open this file in a
+      browser and pick A / B / C (or mix). Brand seed leans green; all three keep
+      the surface dim and lived-in, not pure black.
+    </p>
+
+    <div class="grid">
+      <article class="option a">
+        <div class="preview">
+          <span class="edge tl">SS-01</span>
+          <span class="edge tr">signal</span>
+          <div>
+            <div class="brand">Safe<br />Somewhere</div>
+            <p class="line" style="margin-top: 1rem">
+              A quiet frequency after the city goes soft.
+            </p>
+          </div>
+          <div class="accent-dot" aria-hidden="true"></div>
+          <span class="edge bl">ig</span>
+          <span class="edge br">somewhere</span>
+        </div>
+        <div class="meta">
+          <h2>A — Wet concrete</h2>
+          <p>
+            Cool smoke-gray mid. Moss signal as primary. Feels like rain on a
+            garage wall / radio tower at dusk. Most “ominous technical.”
+          </p>
+          <div class="swatches">
+            <div class="swatch-wrap">
+              <div class="swatch" style="background: oklch(0.42 0.012 230)"></div>
+              <span>bg</span>
+            </div>
+            <div class="swatch-wrap">
+              <div class="swatch" style="background: oklch(0.48 0.014 230)"></div>
+              <span>surface</span>
+            </div>
+            <div class="swatch-wrap">
+              <div class="swatch" style="background: oklch(0.93 0.01 230)"></div>
+              <span>ink</span>
+            </div>
+            <div class="swatch-wrap">
+              <div class="swatch" style="background: oklch(0.58 0.09 160)"></div>
+              <span>primary</span>
+            </div>
+            <div class="swatch-wrap">
+              <div class="swatch" style="background: oklch(0.7 0.04 55)"></div>
+              <span>accent</span>
+            </div>
+          </div>
+          <p class="pick">Reply: A</p>
+        </div>
+      </article>
+
+      <article class="option b">
+        <div class="preview">
+          <span class="edge tl">SS-02</span>
+          <span class="edge tr">room</span>
+          <div>
+            <div class="brand">Safe<br />Somewhere</div>
+            <p class="line" style="margin-top: 1rem">
+              One lamp still on. The rest of the building asleep.
+            </p>
+          </div>
+          <div class="accent-dot" aria-hidden="true"></div>
+          <span class="edge bl">ig</span>
+          <span class="edge br">somewhere</span>
+        </div>
+        <div class="meta">
+          <h2>B — Lamp room</h2>
+          <p>
+            Warm charcoal-brown mid. Faded amber as signal. Feels like a lived-in
+            room at 2am / diner glass after closing. Most “human refuge.”
+          </p>
+          <div class="swatches">
+            <div class="swatch-wrap">
+              <div class="swatch" style="background: oklch(0.38 0.018 70)"></div>
+              <span>bg</span>
+            </div>
+            <div class="swatch-wrap">
+              <div class="swatch" style="background: oklch(0.44 0.02 70)"></div>
+              <span>surface</span>
+            </div>
+            <div class="swatch-wrap">
+              <div class="swatch" style="background: oklch(0.9 0.02 75)"></div>
+              <span>ink</span>
+            </div>
+            <div class="swatch-wrap">
+              <div class="swatch" style="background: oklch(0.55 0.08 160)"></div>
+              <span>primary</span>
+            </div>
+            <div class="swatch-wrap">
+              <div class="swatch" style="background: oklch(0.62 0.11 55)"></div>
+              <span>accent</span>
+            </div>
+          </div>
+          <p class="pick">Reply: B</p>
+        </div>
+      </article>
+
+      <article class="option c">
+        <div class="preview">
+          <span class="edge tl">SS-03</span>
+          <span class="edge tr">fog</span>
+          <div>
+            <div class="brand">Safe<br />Somewhere</div>
+            <p class="line" style="margin-top: 1rem">
+              The platform is empty. The signal is still there.
+            </p>
+          </div>
+          <div class="accent-dot" aria-hidden="true"></div>
+          <span class="edge bl">ig</span>
+          <span class="edge br">somewhere</span>
+        </div>
+        <div class="meta">
+          <h2>C — Fog platform</h2>
+          <p>
+            Green-gray mid from the brand seed. Restrained rust accent. Feels like
+            dawn before the city wakes / forest edge of a parking structure.
+          </p>
+          <div class="swatches">
+            <div class="swatch-wrap">
+              <div class="swatch" style="background: oklch(0.4 0.02 160)"></div>
+              <span>bg</span>
+            </div>
+            <div class="swatch-wrap">
+              <div class="swatch" style="background: oklch(0.46 0.022 160)"></div>
+              <span>surface</span>
+            </div>
+            <div class="swatch-wrap">
+              <div class="swatch" style="background: oklch(0.9 0.02 150)"></div>
+              <span>ink</span>
+            </div>
+            <div class="swatch-wrap">
+              <div class="swatch" style="background: oklch(0.52 0.1 160)"></div>
+              <span>primary</span>
+            </div>
+            <div class="swatch-wrap">
+              <div class="swatch" style="background: oklch(0.55 0.08 25)"></div>
+              <span>accent</span>
+            </div>
+          </div>
+          <p class="pick">Reply: C</p>
+        </div>
+      </article>
+    </div>
+  </body>
+</html>

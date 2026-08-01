@@ -1,0 +1,4 @@
+# Visual lock — do not change these files without an explicit visual ask.
+# Regenerate: node scripts/verify-visual-lock.mjs --write
+abcd2f1fdf8ae69a917f5c434eb2d702371d0f42a34745559965fee554b333a7  src/components/Landing.tsx
+c324758c52d08169ede40bbea001c44ca43d6dbe81629aaca7283a401e3a8518  src/app/globals.css

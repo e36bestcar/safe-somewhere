@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Safe-Somewhere - text effects lab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500;600&family=Roboto+Flex:opsz,wght,GRAD@8..144,100..1000,-200..150&family=Six+Caps&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: oklch(0.48 0.02 95);
+        --ink: oklch(0.14 0.02 250);
+        --panel: #0e0e10;
+        --soft: #9a9690;
+        --mx: 50%;
+        --my: 40%;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--panel);
+        color: #eee;
+        font-family: "Host Grotesk", system-ui, sans-serif;
+        padding: clamp(1rem, 3vw, 2rem) clamp(1rem, 3vw, 2rem) 3rem;
+      }
+      h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.2rem;
+        font-weight: 600;
+      }
+      .lede {
+        margin: 0 0 0.5rem;
+        max-width: 48rem;
+        color: var(--soft);
+        font-size: 0.88rem;
+        line-height: 1.5;
+      }
+      .note {
+        margin: 0 0 1.5rem;
+        max-width: 48rem;
+        color: #6e6a64;
+        font-size: 0.78rem;
+        line-height: 1.45;
+      }
+      .grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      }
+      .card {
+        border: 1px solid rgb(255 255 255 / 0.1);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        background: #121214;
+      }
+      .card header {
+        padding: 0.75rem 0.9rem 0.55rem;
+        border-bottom: 1px solid rgb(255 255 255 / 0.06);
+      }
+      .card header strong {
+        display: block;
+        font-size: 0.82rem;
+        font-weight: 600;
+        margin-bottom: 0.2rem;
+      }
+      .card header span {
+        display: block;
+        font-size: 0.72rem;
+        color: var(--soft);
+        line-height: 1.4;
+      }
+      .stage {
+        position: relative;
+        isolation: isolate;
+        aspect-ratio: 5 / 4;
+        overflow: hidden;
+        background: var(--bg);
+        cursor: crosshair;
+      }
+      .tex-matte,
+      .tex-grain,
+      .tex-vignette {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      .tex-matte {
+        opacity: 0.85;
+        filter: url(#matte-concrete);
+      }
+      .tex-grain {
+        opacity: 0.35;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        background-size: 220px;
+        mix-blend-mode: soft-light;
+      }
+      .tex-vignette {
+        background: radial-gradient(
+          120% 90% at 50% 40%,
+          transparent 20%,
+          rgb(0 0 0 / 0.35) 100%
+        );
+        mix-blend-mode: multiply;
+      }
+      .mark {
+        position: absolute;
+        left: 8%;
+        top: 46%;
+        transform: translateY(-50%);
+        z-index: 2;
+        margin: 0;
+        font-family: "Six Caps", sans-serif;
+        font-size: clamp(3.2rem, 11vw, 4.6rem);
+        line-height: 0.88;
+        letter-spacing: 0.04em;
+        text-wrap: balance;
+        pointer-events: none;
+        user-select: none;
+      }
+      .hint {
+        position: absolute;
+        right: 0.75rem;
+        bottom: 0.65rem;
+        z-index: 5;
+        font-size: 0.58rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgb(0 0 0 / 0.38);
+      }
+      .pick {
+        padding: 0.55rem 0.9rem 0.7rem;
+        border-top: 1px solid rgb(255 255 255 / 0.06);
+        font-size: 0.72rem;
+        color: #7a7670;
+      }
+      .pick button {
+        appearance: none;
+        border: 1px solid rgb(255 255 255 / 0.14);
+        background: #1a1a1c;
+        color: #ddd;
+        font: inherit;
+        font-size: 0.72rem;
+        padding: 0.35rem 0.7rem;
+        border-radius: 999px;
+        cursor: pointer;
+      }
+      .pick button:hover {
+        border-color: #c9a0e8;
+        color: #e8d4ff;
+      }
+
+      /* ——— 01 Solid colors ——— */
+      .c01 .swatches {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+      }
+      .c01 .swatch {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem;
+        border: 0;
+        background: transparent;
+        cursor: pointer;
+      }
+      .c01 .swatch span {
+        font-family: "Six Caps", sans-serif;
+        font-size: clamp(1.8rem, 5vw, 2.4rem);
+        line-height: 0.88;
+        letter-spacing: 0.04em;
+        text-align: left;
+      }
+      .c01 .swatch[data-c="ink"] span {
+        color: oklch(0.14 0.02 250);
+      }
+      .c01 .swatch[data-c="bone"] span {
+        color: oklch(0.88 0.01 95);
+      }
+      .c01 .swatch[data-c="signal"] span {
+        color: oklch(0.48 0.15 25);
+      }
+      .c01 .swatch[data-c="mist"] span {
+        color: oklch(0.62 0.03 250);
+      }
+      .c01 .swatch.is-on {
+        outline: 1px solid rgb(255 255 255 / 0.35);
+        outline-offset: -1px;
+        background: rgb(0 0 0 / 0.12);
+      }
+      .c01 .preview {
+        display: none;
+      }
+
+      /* ——— 02 Mix-blend difference ——— */
+      .c02 .mark {
+        color: #f2efe8;
+        mix-blend-mode: difference;
+      }
+      .c02 .orb {
+        position: absolute;
+        width: 42%;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        left: var(--mx);
+        top: var(--my);
+        transform: translate(-50%, -50%);
+        background: radial-gradient(
+          circle,
+          oklch(0.55 0.12 25) 0%,
+          oklch(0.35 0.08 280 / 0.5) 45%,
+          transparent 70%
+        );
+        z-index: 1;
+        pointer-events: none;
+      }
+
+      /* ——— 03 Soft-light blend ——— */
+      .c03 .mark {
+        color: oklch(0.82 0.02 95);
+        mix-blend-mode: soft-light;
+        text-shadow: 0 1px 0 rgb(0 0 0 / 0.25);
+      }
+
+      /* ——— 04 Masked living fill ——— */
+      .c04 .mark {
+        color: transparent;
+        background:
+          radial-gradient(
+            circle at var(--mx) var(--my),
+            oklch(0.75 0.04 95) 0%,
+            oklch(0.35 0.03 250) 42%,
+            oklch(0.18 0.02 250) 100%
+          ),
+          linear-gradient(
+            125deg,
+            oklch(0.55 0.02 95),
+            oklch(0.28 0.04 280),
+            oklch(0.42 0.08 25)
+          );
+        background-size: 160% 160%, 100% 100%;
+        background-position: var(--mx) var(--my), 0 0;
+        -webkit-background-clip: text;
+        background-clip: text;
+      }
+
+      /* ——— 05 Gray wake ——— */
+      .c05 .mark {
+        color: oklch(0.38 0.015 95);
+        transition: color 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .c05 .stage:hover .mark,
+      .c05 .stage.is-hot .mark {
+        color: oklch(0.16 0.02 250);
+      }
+
+      /* ——— 06 Stroke outline ——— */
+      .c06 .mark {
+        color: transparent;
+        -webkit-text-stroke: 1.25px oklch(0.18 0.02 250);
+        paint-order: stroke fill;
+      }
+      .c06 .stage:hover .mark {
+        color: oklch(0.16 0.02 250 / 0.18);
+        -webkit-text-stroke: 1.25px oklch(0.12 0.02 250);
+      }
+
+      /* ——— 07 Masked rise ——— */
+      .c07 .rise-wrap {
+        position: absolute;
+        left: 8%;
+        top: 46%;
+        transform: translateY(-50%);
+        z-index: 2;
+        pointer-events: none;
+      }
+      .c07 .line {
+        overflow: hidden;
+        line-height: 0.88;
+      }
+      .c07 .line span {
+        display: block;
+        font-family: "Six Caps", sans-serif;
+        font-size: clamp(3.2rem, 11vw, 4.6rem);
+        letter-spacing: 0.04em;
+        color: oklch(0.16 0.02 250);
+        transform: translateY(110%);
+        animation: riseIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+      .c07 .line:nth-child(2) span {
+        animation-delay: 0.12s;
+      }
+      @keyframes riseIn {
+        to {
+          transform: translateY(0);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .c07 .line span {
+          animation: none;
+          transform: none;
+        }
+      }
+
+      /* ——— 08 Variable pressure (Roboto Flex stand-in) ——— */
+      .c08 .mark {
+        font-family: "Roboto Flex", sans-serif;
+        font-size: clamp(2.4rem, 8vw, 3.4rem);
+        line-height: 0.95;
+        letter-spacing: -0.03em;
+        color: oklch(0.14 0.02 250);
+        font-variation-settings:
+          "wght" 500,
+          "opsz" 48,
+          "GRAD" 0;
+        white-space: pre-line;
+      }
+      .c08 .mark .ch {
+        display: inline-block;
+        transition: font-variation-settings 0.12s ease-out;
+      }
+
+      /* ——— 09 Soft warp (SVG filter) ——— */
+      .c09 .mark {
+        color: oklch(0.15 0.02 250);
+        filter: url(#soft-warp);
+      }
+
+      /* ——— 10 Night window mask ——— */
+      .c10 .night {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        background:
+          radial-gradient(
+            circle at var(--mx) var(--my),
+            oklch(0.55 0.08 55 / 0.55),
+            transparent 35%
+          ),
+          linear-gradient(
+            160deg,
+            #1a1520 0%,
+            #0c1018 40%,
+            #1e2430 70%,
+            #2a1c18 100%
+          );
+        animation: nightDrift 14s ease-in-out infinite alternate;
+      }
+      @keyframes nightDrift {
+        from {
+          filter: hue-rotate(0deg) brightness(1);
+        }
+        to {
+          filter: hue-rotate(12deg) brightness(1.08);
+        }
+      }
+      .c10 .mark {
+        position: relative;
+        z-index: 2;
+        color: #000;
+        background: transparent;
+        mix-blend-mode: destination-out;
+      }
+      .c10 .knockout {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        background: var(--bg);
+        filter: url(#matte-concrete);
+        opacity: 0.92;
+        mix-blend-mode: normal;
+        /* knockout via SVG mask instead for reliability */
+        display: none;
+      }
+      .c10 .stage {
+        background: #0a0c10;
+      }
+      .c10 .mark {
+        color: transparent;
+        background: linear-gradient(
+          145deg,
+          #2a3344 0%,
+          #6b5a48 35%,
+          #1a2030 55%,
+          #3a2a28 80%,
+          #121820 100%
+        );
+        background-size: 200% 200%;
+        background-position: var(--mx) var(--my);
+        -webkit-background-clip: text;
+        background-clip: text;
+        animation: nightDrift 14s ease-in-out infinite alternate;
+      }
+      .c10 .night {
+        display: none;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .c10 .mark,
+        .c10 .night {
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <svg width="0" height="0" aria-hidden style="position: absolute">
+      <defs>
+        <filter
+          id="matte-concrete"
+          x="0%"
+          y="0%"
+          width="100%"
+          height="100%"
+          color-interpolation-filters="sRGB"
+        >
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.75"
+            numOctaves="4"
+            seed="7"
+            result="noise"
+          />
+          <feDiffuseLighting
+            in="noise"
+            lighting-color="#ffffff"
+            surfaceScale="1.4"
+            result="light"
+          >
+            <feDistantLight azimuth="135" elevation="48" />
+          </feDiffuseLighting>
+          <feComponentTransfer in="light">
+            <feFuncR type="linear" slope="0.85" intercept="0.05" />
+            <feFuncG type="linear" slope="0.85" intercept="0.05" />
+            <feFuncB type="linear" slope="0.85" intercept="0.05" />
+          </feComponentTransfer>
+        </filter>
+        <filter id="soft-warp" x="-10%" y="-10%" width="120%" height="120%">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.015"
+            numOctaves="2"
+            seed="3"
+            result="warp"
+          >
+            <animate
+              attributeName="baseFrequency"
+              values="0.012;0.018;0.012"
+              dur="8s"
+              repeatCount="indefinite"
+            />
+          </feTurbulence>
+          <feDisplacementMap
+            in="SourceGraphic"
+            in2="warp"
+            scale="6"
+            xChannelSelector="R"
+            yChannelSelector="G"
+          />
+        </filter>
+      </defs>
+    </svg>
+
+    <h1>Text effects lab - see them, then pick</h1>
+    <p class="lede">
+      Ten live comps on your locked concrete. Chrome is out. Hover / move the
+      pointer where it says to. Click a swatch or “shortlist” when something
+      feels right.
+    </p>
+    <p class="note">
+      File: moodboards/text-effects-lab.html · site background not modified ·
+      Six Caps on most cards (variable-pressure card uses Roboto Flex as a
+      stand-in because Six Caps is not variable)
+    </p>
+
+    <div class="grid">
+      <!-- 01 -->
+      <article class="card c01">
+        <header>
+          <strong>01 · Solid color only</strong>
+          <span>No effect. Click a color. Often the freshest move.</span>
+        </header>
+        <div class="stage">
+          <div class="tex-matte"></div>
+          <div class="tex-grain"></div>
+          <div class="tex-vignette"></div>
+          <div class="swatches">
+            <button type="button" class="swatch is-on" data-c="ink">
+              <span>Safe<br />Somewhere</span>
+            </button>
+            <button type="button" class="swatch" data-c="bone">
+              <span>Safe<br />Somewhere</span>
+            </button>
+            <button type="button" class="swatch" data-c="signal">
+              <span>Safe<br />Somewhere</span>
+            </button>
+            <button type="button" class="swatch" data-c="mist">
+              <span>Safe<br />Somewhere</span>
+            </button>
+          </div>
+          <span class="hint">ink · bone · signal · mist</span>
+        </div>
+        <div class="pick">
+          <button type="button" data-pick="01">Shortlist this</button>
+        </div>
+      </article>
+
+      <!-- 02 -->
+      <article class="card c02">
+        <header>
+          <strong>02 · Mix-blend difference</strong>
+          <span>Type inverts over a soft orb. Move pointer.</span>
+        </header>
+        <div class="stage" data-track>
+          <div class="tex-matte"></div>
+          <div class="tex-grain"></div>
+          <div class="tex-vignette"></div>
+          <div class="orb" aria-hidden></div>
+          <p class="mark">Safe<br />Somewhere</p>
+          <span class="hint">move pointer</span>
+        </div>
+        <div class="pick">
+          <button type="button" data-pick="02">Shortlist this</button>
+        </div>
+      </article>
+
+      <!-- 03 -->
+      <article class="card c03">
+        <header>
+          <strong>03 · Soft-light stamp</strong>
+          <span>Light type stamped into the concrete. No motion.</span>
+        </header>
+        <div class="stage">
+          <div class="tex-matte"></div>
+          <div class="tex-grain"></div>
+          <div class="tex-vignette"></div>
+          <p class="mark">Safe<br />Somewhere</p>
+          <span class="hint">static blend</span>
+        </div>
+        <div class="pick">
+          <button type="button" data-pick="03">Shortlist this</button>
+        </div>
+      </article>
+
+      <!-- 04 -->
+      <article class="card c04">
+        <header>
+          <strong>04 · Masked living fill</strong>
+          <span>Soft light moves inside the glyphs. Not chrome.</span>
+        </header>
+        <div class="stage" data-track>
+          <div class="tex-matte"></div>
+          <div class="tex-grain"></div>
+          <div class="tex-vignette"></div>
+          <p class="mark">Safe<br />Somewhere</p>
+          <span class="hint">move pointer</span>
+        </div>
+        <div class="pick">
+          <button type="button" data-pick="04">Shortlist this</button>
+        </div>
+      </article>
+
+      <!-- 05 -->
+      <article class="card c05">
+        <header>
+          <strong>05 · Gray wake</strong>
+          <span>Muted until focus. Apple-style “comes alive.”</span>
+        </header>
+        <div class="stage">
+          <div class="tex-matte"></div>
+          <div class="tex-grain"></div>
+          <div class="tex-vignette"></div>
+          <p class="mark">Safe<br />Somewhere</p>
+          <span class="hint">hover stage</span>
+        </div>
+        <div class="pick">
+          <button type="button" data-pick="05">Shortlist this</button>
+        </div>
+      </article>
+
+      <!-- 06 -->
+      <article class="card c06">
+        <header>
+          <strong>06 · Stroke outline</strong>
+          <span>Hairline wireframe. Soft fill on hover.</span>
+        </header>
+        <div class="stage">
+          <div class="tex-matte"></div>
+          <div class="tex-grain"></div>
+          <div class="tex-vignette"></div>
+          <p class="mark">Safe<br />Somewhere</p>
+          <span class="hint">hover stage</span>
+        </div>
+        <div class="pick">
+          <button type="button" data-pick="06">Shortlist this</button>
+        </div>
+      </article>
+
+      <!-- 07 -->
+      <article class="card c07">
+        <header>
+          <strong>07 · Masked rise</strong>
+          <span>Entrance only. Then it sits as solid ink. Replay below.</span>
+        </header>
+        <div class="stage" id="riseStage">
+          <div class="tex-matte"></div>
+          <div class="tex-grain"></div>
+          <div class="tex-vignette"></div>
+          <div class="rise-wrap" id="riseWrap">
+            <div class="line"><span>Safe</span></div>
+            <div class="line"><span>Somewhere</span></div>
+          </div>
+          <span class="hint">entrance</span>
+        </div>
+        <div class="pick">
+          <button type="button" data-pick="07">Shortlist this</button>
+          <button type="button" id="replayRise" style="margin-left: 0.35rem">
+            Replay
+          </button>
+        </div>
+      </article>
+
+      <!-- 08 -->
+      <article class="card c08">
+        <header>
+          <strong>08 · Variable pressure</strong>
+          <span>Weight follows cursor. Roboto Flex stand-in (not Six Caps).</span>
+        </header>
+        <div class="stage" data-track id="pressureStage">
+          <div class="tex-matte"></div>
+          <div class="tex-grain"></div>
+          <div class="tex-vignette"></div>
+          <p class="mark" id="pressureMark">Safe<br />Somewhere</p>
+          <span class="hint">move near letters</span>
+        </div>
+        <div class="pick">
+          <button type="button" data-pick="08">Shortlist this</button>
+        </div>
+      </article>
+
+      <!-- 09 -->
+      <article class="card c09">
+        <header>
+          <strong>09 · Soft warp</strong>
+          <span>Tiny heat-haze displacement. Keep it quiet.</span>
+        </header>
+        <div class="stage">
+          <div class="tex-matte"></div>
+          <div class="tex-grain"></div>
+          <div class="tex-vignette"></div>
+          <p class="mark">Safe<br />Somewhere</p>
+          <span class="hint">subtle motion</span>
+        </div>
+        <div class="pick">
+          <button type="button" data-pick="09">Shortlist this</button>
+        </div>
+      </article>
+
+      <!-- 10 -->
+      <article class="card c10">
+        <header>
+          <strong>10 · Night window</strong>
+          <span>Slow dusk gradient inside the glyphs. Mask feel, no foil.</span>
+        </header>
+        <div class="stage" data-track>
+          <div class="tex-matte"></div>
+          <div class="tex-grain"></div>
+          <div class="tex-vignette"></div>
+          <div class="night" aria-hidden></div>
+          <p class="mark">Safe<br />Somewhere</p>
+          <span class="hint">move pointer</span>
+        </div>
+        <div class="pick">
+          <button type="button" data-pick="10">Shortlist this</button>
+        </div>
+      </article>
+    </div>
+
+    <p
+      class="lede"
+      id="shortlistOut"
+      style="margin-top: 1.5rem; color: #c9a0e8"
+    >
+      Shortlist: none yet. Click “Shortlist this” on any card.
+    </p>
+
+    <script>
+      const root = document.documentElement;
+      const picks = new Set();
+      const out = document.getElementById("shortlistOut");
+
+      document.querySelectorAll("[data-track]").forEach((stage) => {
+        stage.addEventListener("pointermove", (e) => {
+          const r = stage.getBoundingClientRect();
+          const x = ((e.clientX - r.left) / r.width) * 100;
+          const y = ((e.clientY - r.top) / r.height) * 100;
+          stage.style.setProperty("--mx", x.toFixed(1) + "%");
+          stage.style.setProperty("--my", y.toFixed(1) + "%");
+          root.style.setProperty("--mx", x.toFixed(1) + "%");
+          root.style.setProperty("--my", y.toFixed(1) + "%");
+        });
+      });
+
+      // 01 swatches
+      document.querySelectorAll(".c01 .swatch").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document
+            .querySelectorAll(".c01 .swatch")
+            .forEach((b) => b.classList.remove("is-on"));
+          btn.classList.add("is-on");
+        });
+      });
+
+      // 07 replay
+      document.getElementById("replayRise").addEventListener("click", () => {
+        const wrap = document.getElementById("riseWrap");
+        const html = wrap.innerHTML;
+        wrap.innerHTML = "";
+        void wrap.offsetWidth;
+        wrap.innerHTML = html;
+      });
+
+      // 08 pressure
+      (function () {
+        const mark = document.getElementById("pressureMark");
+        const stage = document.getElementById("pressureStage");
+        const text = mark.innerText;
+        mark.innerHTML = "";
+        [...text].forEach((ch) => {
+          const s = document.createElement("span");
+          s.className = "ch";
+          s.textContent = ch === "\n" ? "\n" : ch;
+          if (ch === "\n") s.style.display = "block";
+          mark.appendChild(s);
+        });
+        stage.addEventListener("pointermove", (e) => {
+          const chars = mark.querySelectorAll(".ch");
+          chars.forEach((el) => {
+            if (el.textContent.trim() === "") return;
+            const r = el.getBoundingClientRect();
+            const cx = r.left + r.width / 2;
+            const cy = r.top + r.height / 2;
+            const d = Math.hypot(e.clientX - cx, e.clientY - cy);
+            const t = Math.max(0, 1 - d / 140);
+            const wght = Math.round(420 + t * 480);
+            const grad = Math.round(t * 80);
+            el.style.fontVariationSettings = `"wght" ${wght}, "opsz" 72, "GRAD" ${grad}`;
+          });
+        });
+        stage.addEventListener("pointerleave", () => {
+          mark.querySelectorAll(".ch").forEach((el) => {
+            el.style.fontVariationSettings = `"wght" 500, "opsz" 48, "GRAD" 0`;
+          });
+        });
+      })();
+
+      document.querySelectorAll("[data-pick]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.dataset.pick;
+          picks.add(id);
+          out.textContent =
+            "Shortlist: " +
+            [...picks].sort().join(", ") +
+            ". Tell me these numbers and we hone only those.";
+          btn.textContent = "Shortlisted";
+          btn.style.borderColor = "#c9a0e8";
+          btn.style.color = "#e8d4ff";
+        });
+      });
+    </script>
+  </body>
+</html>

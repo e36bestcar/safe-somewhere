@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Safe-Somewhere — E30/E36 paint palettes</title>
+    <style>
+      :root {
+        --page: #101010;
+        --label: #a9a9a9;
+        --hair: rgb(255 255 255 / 0.09);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--page);
+        color: #eee;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        padding: clamp(1.2rem, 3vw, 2.4rem);
+      }
+      h1 {
+        margin: 0 0 0.35rem;
+        font-size: clamp(1.15rem, 2vw, 1.5rem);
+        font-weight: 520;
+      }
+      .lede {
+        margin: 0 0 1.75rem;
+        max-width: 48rem;
+        color: var(--label);
+        font-size: 0.88rem;
+        line-height: 1.5;
+      }
+      h2 {
+        margin: 2.4rem 0 0.9rem;
+        font-size: 0.72rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--label);
+        font-weight: 600;
+      }
+      .grid {
+        display: grid;
+        gap: 0.9rem;
+        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      }
+      .card {
+        border: 1px solid var(--hair);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .stage {
+        position: relative;
+        isolation: isolate;
+        aspect-ratio: 5 / 4;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        overflow: hidden;
+      }
+      /* matte grain */
+      .stage::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        opacity: 0.5;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        background-size: 160px;
+        mix-blend-mode: soft-light;
+      }
+      .stage::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        background: radial-gradient(
+          120% 80% at 50% 0%,
+          rgb(255 255 255 / 0.06),
+          transparent 55%
+        );
+        pointer-events: none;
+      }
+      .stage > * {
+        position: relative;
+        z-index: 2;
+      }
+      .code {
+        font-size: 0.58rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        opacity: 0.55;
+      }
+      .name {
+        font-size: 1.35rem;
+        font-weight: 620;
+        letter-spacing: -0.035em;
+        line-height: 0.98;
+        background-image: var(--chrome);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        filter: drop-shadow(0 1px 0 rgb(0 0 0 / 0.4))
+          drop-shadow(0 6px 14px rgb(0 0 0 / 0.28));
+      }
+      .bit {
+        margin: 0.55rem 0 0;
+        font-size: 0.7rem;
+        line-height: 1.35;
+        max-width: 18ch;
+        opacity: 0.62;
+      }
+      .info {
+        padding: 0.7rem 0.8rem 0.85rem;
+        background: #0c0c0c;
+      }
+      .info strong {
+        display: block;
+        font-size: 0.76rem;
+        margin-bottom: 0.2rem;
+      }
+      .info p {
+        margin: 0 0 0.55rem;
+        font-size: 0.68rem;
+        color: var(--label);
+        line-height: 1.4;
+      }
+      .sw {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 3px;
+      }
+      .sw i {
+        aspect-ratio: 1;
+        display: block;
+        border: 1px solid rgb(255 255 255 / 0.08);
+      }
+      .fav {
+        outline: 1px solid oklch(0.75 0.12 95);
+        outline-offset: -1px;
+      }
+      .note {
+        margin-top: 1.75rem;
+        color: var(--label);
+        font-size: 0.78rem;
+        max-width: 44rem;
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Safe-Somewhere — E30 / E36 era palettes</h1>
+    <p class="lede">
+      Your locks from last round sit up top (15 · 19 · 18 · 12). Below: dim-matte
+      adaptations of real 1986–1999 BMW paint codes (E30 M3 specials + E36 / E36
+      M3). Hex/OKLCH are screen approximations of metallics — flake depth won’t
+      match paint, but the hue families are period-correct. Chrome type sits on
+      matte grain. Still exploration only.
+    </p>
+
+    <h2>Already loved</h2>
+    <div class="grid" id="loved"></div>
+
+    <h2>E30 / E36 factory-inspired (matte + chrome)</h2>
+    <div class="grid" id="bmw"></div>
+
+    <p class="note">
+      Dig list includes: Macao 250, Misano 236, Nogaro 243, Estoril 335, Techno
+      Violet 299, Dakar 267/337, Boston Green 275, Daytona Violet 283, Avus 276,
+      Samoa 295, Montreal 297, Petrol Mica 305, Violet Red 316, Fern Green 386,
+      Byzanz 355, Mora 359, Amethyst 452, Calypso 252, Morea 288, Mauritius 287,
+      Lagoon 266, Aubergine 348, Ascot Grey 151, Henna 052, Salmon Silver 203.
+      Reply with BMW numbers / names you want to shortlist with 15/19/18/12.
+    </p>
+
+    <script>
+      const chrome = (stops) => `linear-gradient(175deg, ${stops})`;
+
+      const loved = [
+        {
+          id: "15",
+          title: "Satellite dish",
+          blurb: "Cool dish-beige field. Signal red, tiny and mean.",
+          bg: "oklch(0.48 0.02 95)",
+          surface: "oklch(0.54 0.022 95)",
+          ink: "oklch(0.22 0.02 250)",
+          primary: "oklch(0.48 0.15 25)",
+          accent: "oklch(0.45 0.06 230)",
+          chrome: chrome(
+            "oklch(0.95 0.02 95) 0%, oklch(0.55 0.12 25) 28%, oklch(0.35 0.08 20) 50%, oklch(0.85 0.06 40) 70%, oklch(0.5 0.1 25) 100%"
+          ),
+        },
+        {
+          id: "19",
+          title: "Sulfur storm",
+          blurb: "Storm-lavender gray. Sulfur yellow fleck only.",
+          bg: "oklch(0.4 0.025 290)",
+          surface: "oklch(0.46 0.03 290)",
+          ink: "oklch(0.9 0.03 100)",
+          primary: "oklch(0.78 0.14 100)",
+          accent: "oklch(0.5 0.08 290)",
+          chrome: chrome(
+            "oklch(0.95 0.08 100) 0%, oklch(0.75 0.14 100) 25%, oklch(0.4 0.08 95) 48%, oklch(0.9 0.1 105) 65%, oklch(0.55 0.12 100) 100%"
+          ),
+        },
+        {
+          id: "18",
+          title: "Tobacco & ice",
+          blurb: "Tobacco leather mid. Ice-blue chrome type.",
+          bg: "oklch(0.36 0.04 60)",
+          surface: "oklch(0.42 0.045 60)",
+          ink: "oklch(0.88 0.04 220)",
+          primary: "oklch(0.72 0.08 230)",
+          accent: "oklch(0.55 0.1 45)",
+          chrome: chrome(
+            "oklch(0.94 0.04 220) 0%, oklch(0.7 0.09 230) 22%, oklch(0.4 0.07 240) 48%, oklch(0.88 0.06 210) 66%, oklch(0.55 0.08 230) 100%"
+          ),
+        },
+        {
+          id: "12",
+          title: "Arctic mud",
+          blurb: "Cold brown-gray earth. Polar green metal.",
+          bg: "oklch(0.37 0.02 80)",
+          surface: "oklch(0.43 0.025 80)",
+          ink: "oklch(0.9 0.02 200)",
+          primary: "oklch(0.62 0.1 175)",
+          accent: "oklch(0.55 0.08 30)",
+          chrome: chrome(
+            "oklch(0.92 0.05 175) 0%, oklch(0.65 0.1 175) 24%, oklch(0.38 0.07 170) 48%, oklch(0.85 0.06 180) 66%, oklch(0.5 0.09 175) 100%"
+          ),
+        },
+      ];
+
+      // Screen approximations of period BMW paints — not OEM formulas.
+      const bmw = [
+        {
+          code: "335",
+          car: "E36 M3",
+          title: "Estoril Blue",
+          blurb: "The Atlantic M blue. Matte garage wall reading of 335 + silver chrome.",
+          bg: "oklch(0.34 0.08 255)",
+          surface: "oklch(0.4 0.07 255)",
+          ink: "oklch(0.9 0.02 250)",
+          primary: "oklch(0.52 0.14 255)",
+          accent: "oklch(0.72 0.03 95)",
+          chrome: chrome(
+            "oklch(0.95 0.02 240) 0%, oklch(0.7 0.1 255) 20%, oklch(0.35 0.1 260) 45%, oklch(0.88 0.05 230) 62%, oklch(0.48 0.12 255) 100%"
+          ),
+        },
+        {
+          code: "299",
+          car: "E36 M3",
+          title: "Techno Violet",
+          blurb: "Deep metallic violet. Not AI purple-on-white — violet as the room.",
+          bg: "oklch(0.32 0.09 310)",
+          surface: "oklch(0.38 0.08 310)",
+          ink: "oklch(0.9 0.03 100)",
+          primary: "oklch(0.48 0.16 310)",
+          accent: "oklch(0.7 0.12 95)",
+          chrome: chrome(
+            "oklch(0.92 0.06 320) 0%, oklch(0.58 0.16 310) 22%, oklch(0.3 0.1 305) 48%, oklch(0.8 0.08 330) 65%, oklch(0.45 0.14 310) 100%"
+          ),
+        },
+        {
+          code: "267 / 337",
+          car: "E36 M3",
+          title: "Dakar Yellow",
+          blurb: "West-African sun on an M3. Dim the field; keep yellow as chrome signal.",
+          bg: "oklch(0.28 0.02 80)",
+          surface: "oklch(0.34 0.025 80)",
+          ink: "oklch(0.9 0.08 95)",
+          primary: "oklch(0.82 0.16 95)",
+          accent: "oklch(0.45 0.06 250)",
+          chrome: chrome(
+            "oklch(0.97 0.1 100) 0%, oklch(0.82 0.16 95) 25%, oklch(0.5 0.12 85) 48%, oklch(0.92 0.12 100) 65%, oklch(0.65 0.14 95) 100%"
+          ),
+        },
+        {
+          code: "275",
+          car: "E36 M3",
+          title: "Boston Green",
+          blurb: "Dark British-ish green metallic. Quiet money. Anthracite interior vibe.",
+          bg: "oklch(0.3 0.05 155)",
+          surface: "oklch(0.36 0.05 155)",
+          ink: "oklch(0.88 0.03 150)",
+          primary: "oklch(0.42 0.08 155)",
+          accent: "oklch(0.7 0.08 85)",
+          chrome: chrome(
+            "oklch(0.9 0.04 150) 0%, oklch(0.55 0.08 155) 25%, oklch(0.28 0.06 160) 50%, oklch(0.78 0.05 145) 68%, oklch(0.4 0.07 155) 100%"
+          ),
+        },
+        {
+          code: "250",
+          car: "E30 M3",
+          title: "Macao Blue",
+          blurb: "Evo II / Cecotto blue. Deeper and older than Estoril — night harbor.",
+          bg: "oklch(0.28 0.07 260)",
+          surface: "oklch(0.34 0.07 260)",
+          ink: "oklch(0.88 0.03 250)",
+          primary: "oklch(0.4 0.12 260)",
+          accent: "oklch(0.72 0.04 90)",
+          chrome: chrome(
+            "oklch(0.9 0.04 250) 0%, oklch(0.5 0.12 260) 24%, oklch(0.25 0.08 265) 50%, oklch(0.75 0.06 240) 68%, oklch(0.42 0.1 260) 100%"
+          ),
+        },
+        {
+          code: "236 + 243",
+          car: "E30 M3",
+          title: "Misano / Nogaro",
+          blurb: "Evo red + Nogaro silver. Race-weekend pairing as field + chrome.",
+          bg: "oklch(0.42 0.01 250)",
+          surface: "oklch(0.48 0.012 250)",
+          ink: "oklch(0.2 0.02 20)",
+          primary: "oklch(0.5 0.18 25)",
+          accent: "oklch(0.7 0.02 95)",
+          chrome: chrome(
+            "oklch(0.95 0.01 95) 0%, oklch(0.7 0.02 95) 30%, oklch(0.4 0.01 95) 52%, oklch(0.9 0.01 95) 72%, oklch(0.55 0.015 95) 100%"
+          ),
+        },
+        {
+          code: "283",
+          car: "E36 M3",
+          title: "Daytona Violet",
+          blurb: "Earlier violet — redder / duskier than Techno. Closed-track evening.",
+          bg: "oklch(0.33 0.08 320)",
+          surface: "oklch(0.39 0.075 320)",
+          ink: "oklch(0.9 0.03 80)",
+          primary: "oklch(0.46 0.14 325)",
+          accent: "oklch(0.65 0.1 50)",
+          chrome: chrome(
+            "oklch(0.9 0.05 330) 0%, oklch(0.55 0.14 325) 24%, oklch(0.3 0.1 320) 50%, oklch(0.8 0.07 340) 68%, oklch(0.45 0.12 325) 100%"
+          ),
+        },
+        {
+          code: "276",
+          car: "E36 M3",
+          title: "Avus Blue",
+          blurb: "Pre-Estoril M blue. Darker, denser — Berlin Avus banking.",
+          bg: "oklch(0.3 0.07 250)",
+          surface: "oklch(0.36 0.065 250)",
+          ink: "oklch(0.88 0.03 240)",
+          primary: "oklch(0.42 0.11 250)",
+          accent: "oklch(0.7 0.05 85)",
+          chrome: chrome(
+            "oklch(0.88 0.04 240) 0%, oklch(0.5 0.1 250) 25%, oklch(0.26 0.08 255) 50%, oklch(0.75 0.05 230) 68%, oklch(0.4 0.09 250) 100%"
+          ),
+        },
+        {
+          code: "297",
+          car: "E36",
+          title: "Montreal Blue",
+          blurb: "Soft period blue-metallic. Less race, more boulevard at dusk.",
+          bg: "oklch(0.38 0.05 250)",
+          surface: "oklch(0.44 0.05 250)",
+          ink: "oklch(0.9 0.02 250)",
+          primary: "oklch(0.5 0.09 250)",
+          accent: "oklch(0.65 0.08 55)",
+          chrome: chrome(
+            "oklch(0.92 0.03 240) 0%, oklch(0.6 0.09 250) 25%, oklch(0.35 0.07 255) 50%, oklch(0.82 0.04 230) 68%, oklch(0.48 0.08 250) 100%"
+          ),
+        },
+        {
+          code: "295",
+          car: "E36",
+          title: "Samoa Blue",
+          blurb: "Greener blue — tropical name, northern garage reality.",
+          bg: "oklch(0.36 0.055 230)",
+          surface: "oklch(0.42 0.055 230)",
+          ink: "oklch(0.9 0.025 220)",
+          primary: "oklch(0.48 0.09 225)",
+          accent: "oklch(0.7 0.1 70)",
+          chrome: chrome(
+            "oklch(0.9 0.04 220) 0%, oklch(0.58 0.09 225) 24%, oklch(0.32 0.07 230) 50%, oklch(0.8 0.05 210) 68%, oklch(0.45 0.08 225) 100%"
+          ),
+        },
+        {
+          code: "305",
+          car: "E36",
+          title: "Petrol Mica",
+          blurb: "Oil-slick green-black mica. Extremely 90s. Ominous by default.",
+          bg: "oklch(0.29 0.035 170)",
+          surface: "oklch(0.35 0.04 170)",
+          ink: "oklch(0.86 0.04 160)",
+          primary: "oklch(0.42 0.07 175)",
+          accent: "oklch(0.6 0.08 40)",
+          chrome: chrome(
+            "oklch(0.85 0.05 165) 0%, oklch(0.5 0.07 170) 25%, oklch(0.25 0.05 175) 50%, oklch(0.72 0.05 155) 68%, oklch(0.4 0.06 170) 100%"
+          ),
+        },
+        {
+          code: "316 / 328",
+          car: "E36",
+          title: "Violet Red",
+          blurb: "Violettrot — burgundy that leans purple. Velvet booth energy.",
+          bg: "oklch(0.32 0.07 15)",
+          surface: "oklch(0.38 0.07 15)",
+          ink: "oklch(0.9 0.03 40)",
+          primary: "oklch(0.45 0.12 10)",
+          accent: "oklch(0.65 0.05 90)",
+          chrome: chrome(
+            "oklch(0.88 0.05 20) 0%, oklch(0.52 0.12 12) 24%, oklch(0.28 0.08 10) 50%, oklch(0.75 0.06 30) 68%, oklch(0.42 0.1 12) 100%"
+          ),
+        },
+        {
+          code: "386",
+          car: "E36 M3 Anniv.",
+          title: "Fern Green",
+          blurb: "Anniversary fern — softer than Boston, still not spa green.",
+          bg: "oklch(0.4 0.05 145)",
+          surface: "oklch(0.46 0.05 145)",
+          ink: "oklch(0.2 0.03 145)",
+          primary: "oklch(0.48 0.09 145)",
+          accent: "oklch(0.55 0.1 35)",
+          chrome: chrome(
+            "oklch(0.9 0.04 140) 0%, oklch(0.55 0.09 145) 25%, oklch(0.32 0.06 150) 50%, oklch(0.8 0.05 135) 68%, oklch(0.45 0.08 145) 100%"
+          ),
+        },
+        {
+          code: "355",
+          car: "E36",
+          title: "Byzanz",
+          blurb: "Byzantium orange metallic — rare weird. Late-90s Individual energy.",
+          bg: "oklch(0.34 0.04 55)",
+          surface: "oklch(0.4 0.045 55)",
+          ink: "oklch(0.9 0.05 60)",
+          primary: "oklch(0.62 0.14 50)",
+          accent: "oklch(0.45 0.06 250)",
+          chrome: chrome(
+            "oklch(0.92 0.08 60) 0%, oklch(0.65 0.14 50) 24%, oklch(0.38 0.1 45) 50%, oklch(0.85 0.1 65) 68%, oklch(0.52 0.12 50) 100%"
+          ),
+        },
+        {
+          code: "359",
+          car: "E36",
+          title: "Mora",
+          blurb: "Mora metallic purple — mulberry, not neon. Softly ominous.",
+          bg: "oklch(0.35 0.06 330)",
+          surface: "oklch(0.41 0.06 330)",
+          ink: "oklch(0.9 0.03 90)",
+          primary: "oklch(0.48 0.1 330)",
+          accent: "oklch(0.68 0.08 80)",
+          chrome: chrome(
+            "oklch(0.9 0.05 335) 0%, oklch(0.55 0.1 330) 25%, oklch(0.3 0.08 325) 50%, oklch(0.78 0.06 340) 68%, oklch(0.45 0.09 330) 100%"
+          ),
+        },
+        {
+          code: "252",
+          car: "E36",
+          title: "Calypso Red",
+          blurb: "Calypsorot metallic — coral-leaning red of the early 90s.",
+          bg: "oklch(0.36 0.06 25)",
+          surface: "oklch(0.42 0.06 25)",
+          ink: "oklch(0.92 0.03 40)",
+          primary: "oklch(0.55 0.15 25)",
+          accent: "oklch(0.55 0.05 230)",
+          chrome: chrome(
+            "oklch(0.92 0.06 30) 0%, oklch(0.6 0.15 25) 24%, oklch(0.35 0.1 20) 50%, oklch(0.82 0.08 40) 68%, oklch(0.48 0.12 25) 100%"
+          ),
+        },
+        {
+          code: "288",
+          car: "E36",
+          title: "Morea Green",
+          blurb: "Moreagrün — dusty sea-green metallic. Quiet coastal industrial.",
+          bg: "oklch(0.38 0.045 170)",
+          surface: "oklch(0.44 0.045 170)",
+          ink: "oklch(0.9 0.025 165)",
+          primary: "oklch(0.5 0.08 170)",
+          accent: "oklch(0.6 0.1 45)",
+          chrome: chrome(
+            "oklch(0.9 0.04 165) 0%, oklch(0.58 0.08 170) 25%, oklch(0.32 0.06 175) 50%, oklch(0.8 0.05 160) 68%, oklch(0.45 0.07 170) 100%"
+          ),
+        },
+        {
+          code: "287",
+          car: "E36",
+          title: "Mauritius Blue",
+          blurb: "Mauritiusblau — mid period blue with a green undertone.",
+          bg: "oklch(0.35 0.06 235)",
+          surface: "oklch(0.41 0.06 235)",
+          ink: "oklch(0.9 0.025 230)",
+          primary: "oklch(0.48 0.1 235)",
+          accent: "oklch(0.7 0.08 75)",
+          chrome: chrome(
+            "oklch(0.9 0.04 230) 0%, oklch(0.55 0.1 235) 24%, oklch(0.3 0.07 240) 50%, oklch(0.8 0.05 220) 68%, oklch(0.45 0.09 235) 100%"
+          ),
+        },
+        {
+          code: "266",
+          car: "E36",
+          title: "Lagoon Green",
+          blurb: "Lagunengrün — darker lagoon. Pair with anthracite, not white.",
+          bg: "oklch(0.33 0.05 165)",
+          surface: "oklch(0.39 0.05 165)",
+          ink: "oklch(0.88 0.03 160)",
+          primary: "oklch(0.45 0.08 165)",
+          accent: "oklch(0.65 0.09 55)",
+          chrome: chrome(
+            "oklch(0.88 0.04 160) 0%, oklch(0.52 0.08 165) 25%, oklch(0.28 0.06 170) 50%, oklch(0.75 0.05 155) 68%, oklch(0.42 0.07 165) 100%"
+          ),
+        },
+        {
+          code: "348",
+          car: "E36",
+          title: "Aubergine",
+          blurb: "Aubergine red — eggplant night. Extremely “safe somewhere” coded.",
+          bg: "oklch(0.3 0.06 350)",
+          surface: "oklch(0.36 0.06 350)",
+          ink: "oklch(0.88 0.03 40)",
+          primary: "oklch(0.42 0.1 355)",
+          accent: "oklch(0.65 0.06 85)",
+          chrome: chrome(
+            "oklch(0.88 0.05 355) 0%, oklch(0.5 0.1 350) 25%, oklch(0.26 0.07 345) 50%, oklch(0.75 0.06 10) 68%, oklch(0.4 0.09 350) 100%"
+          ),
+        },
+        {
+          code: "151",
+          car: "E36",
+          title: "Ascot Grey",
+          blurb: "Ascotgrau metallic — period grey. Matte dish + Estoril chrome fleck.",
+          bg: "oklch(0.45 0.015 250)",
+          surface: "oklch(0.51 0.015 250)",
+          ink: "oklch(0.22 0.02 250)",
+          primary: "oklch(0.5 0.12 255)",
+          accent: "oklch(0.55 0.08 30)",
+          chrome: chrome(
+            "oklch(0.92 0.04 255) 0%, oklch(0.58 0.12 255) 24%, oklch(0.32 0.09 260) 50%, oklch(0.82 0.05 240) 68%, oklch(0.48 0.1 255) 100%"
+          ),
+        },
+        {
+          code: "052 + 203",
+          car: "E30 M3",
+          title: "Henna / Salmon Silver",
+          blurb: "Early M3 henna red with salmon-silver metal. 86–87 garage.",
+          bg: "oklch(0.4 0.02 70)",
+          surface: "oklch(0.46 0.025 70)",
+          ink: "oklch(0.25 0.04 25)",
+          primary: "oklch(0.48 0.14 30)",
+          accent: "oklch(0.7 0.03 90)",
+          chrome: chrome(
+            "oklch(0.94 0.02 90) 0%, oklch(0.72 0.03 85) 28%, oklch(0.42 0.02 80) 52%, oklch(0.88 0.025 95) 72%, oklch(0.58 0.025 90) 100%"
+          ),
+        },
+        {
+          code: "452",
+          car: "E36 late",
+          title: "Amethyst",
+          blurb: "Amethyst purple metallic — rarer cousin of Techno / Mora.",
+          bg: "oklch(0.34 0.07 315)",
+          surface: "oklch(0.4 0.07 315)",
+          ink: "oklch(0.9 0.03 100)",
+          primary: "oklch(0.5 0.13 315)",
+          accent: "oklch(0.72 0.1 95)",
+          chrome: chrome(
+            "oklch(0.92 0.06 320) 0%, oklch(0.58 0.13 315) 24%, oklch(0.3 0.09 310) 50%, oklch(0.82 0.07 325) 68%, oklch(0.45 0.11 315) 100%"
+          ),
+        },
+        {
+          code: "445",
+          car: "E36 late",
+          title: "Phoenix Yellow",
+          blurb: "Phonixgelb — later yellow metallic. Hotter than Dakar, still period.",
+          bg: "oklch(0.3 0.025 70)",
+          surface: "oklch(0.36 0.03 70)",
+          ink: "oklch(0.9 0.09 90)",
+          primary: "oklch(0.8 0.15 90)",
+          accent: "oklch(0.42 0.08 260)",
+          chrome: chrome(
+            "oklch(0.96 0.1 95) 0%, oklch(0.8 0.15 90) 25%, oklch(0.48 0.12 80) 50%, oklch(0.9 0.12 100) 68%, oklch(0.6 0.13 90) 100%"
+          ),
+        },
+      ];
+
+      function card(p, fav = false) {
+        const label = p.code
+          ? `${p.car} · ${p.code}`
+          : `locked · ${p.id}`;
+        return `
+        <article class="card ${fav ? "fav" : ""}">
+          <div class="stage" style="background:${p.bg};color:${p.ink};--chrome:${p.chrome}">
+            <div class="code">${label}</div>
+            <div>
+              <div class="name">Safe<br/>Somewhere</div>
+              <p class="bit">${p.blurb.split(".")[0]}.</p>
+            </div>
+            <div class="code" style="color:${p.accent}">${p.title}</div>
+          </div>
+          <div class="info">
+            <strong>${p.code ? p.code + " · " : ""}${p.title}</strong>
+            <p>${p.blurb}</p>
+            <div class="sw">
+              <i style="background:${p.bg}"></i>
+              <i style="background:${p.surface}"></i>
+              <i style="background:${p.ink}"></i>
+              <i style="background:${p.primary}"></i>
+              <i style="background:${p.accent}"></i>
+            </div>
+          </div>
+        </article>`;
+      }
+
+      document.getElementById("loved").innerHTML = loved
+        .map((p) => card(p, true))
+        .join("");
+      document.getElementById("bmw").innerHTML = bmw.map((p) => card(p)).join("");
+    </script>
+  </body>
+</html>

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Safe-Somewhere - 06e contrast hone</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500;600&family=Six+Caps&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: oklch(0.48 0.02 95);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #0b0b0d;
+        color: #eee;
+        font-family: "Host Grotesk", system-ui, sans-serif;
+        overflow: hidden;
+      }
+
+      .slide {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: var(--bg);
+        isolation: isolate;
+      }
+      .slide.is-on {
+        display: block;
+      }
+
+      .tex-matte,
+      .tex-grain,
+      .tex-vignette {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      .tex-matte {
+        opacity: 0.85;
+        filter: url(#matte-concrete);
+      }
+      .tex-grain {
+        opacity: 0.35;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        background-size: 220px;
+        mix-blend-mode: soft-light;
+      }
+      .tex-vignette {
+        background: radial-gradient(
+          120% 90% at 50% 40%,
+          transparent 20%,
+          rgb(0 0 0 / 0.35) 100%
+        );
+        mix-blend-mode: multiply;
+      }
+
+      .mark {
+        position: absolute;
+        left: clamp(1.5rem, 6vw, 5rem);
+        top: 48%;
+        transform: translateY(-50%);
+        z-index: 2;
+        margin: 0;
+        font-family: "Six Caps", sans-serif;
+        font-size: clamp(5.5rem, 18vw, 11rem);
+        line-height: 0.86;
+        letter-spacing: 0.04em;
+        pointer-events: none;
+        user-select: none;
+      }
+
+      .meta {
+        position: fixed;
+        top: 1rem;
+        left: clamp(1rem, 3vw, 2rem);
+        z-index: 40;
+        max-width: min(36rem, 70vw);
+        pointer-events: none;
+      }
+      .meta strong {
+        display: block;
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-bottom: 0.2rem;
+        text-shadow: 0 1px 8px rgb(0 0 0 / 0.45);
+      }
+      .meta span {
+        display: block;
+        font-size: 0.78rem;
+        color: rgb(240 236 228 / 0.72);
+        line-height: 1.4;
+        text-shadow: 0 1px 8px rgb(0 0 0 / 0.45);
+      }
+      .keys {
+        position: fixed;
+        top: 1rem;
+        right: clamp(1rem, 3vw, 2rem);
+        z-index: 40;
+        font-size: 0.68rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgb(240 236 228 / 0.5);
+        text-shadow: 0 1px 8px rgb(0 0 0 / 0.45);
+        pointer-events: none;
+      }
+
+      .dock {
+        position: fixed;
+        left: 50%;
+        bottom: 1.1rem;
+        transform: translateX(-50%);
+        z-index: 40;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        max-width: min(96vw, 720px);
+        padding: 0.55rem 0.7rem;
+        border-radius: 999px;
+        background: rgb(12 12 14 / 0.78);
+        border: 1px solid rgb(255 255 255 / 0.12);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+      .dock button {
+        appearance: none;
+        border: 1px solid transparent;
+        background: transparent;
+        color: #aaa;
+        font: inherit;
+        font-size: 0.72rem;
+        padding: 0.35rem 0.65rem;
+        border-radius: 999px;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .dock button:hover {
+        color: #eee;
+      }
+      .dock button.is-on {
+        border-color: #c9a0e8;
+        color: #e8d4ff;
+        background: #1c1524;
+      }
+      .dock .sep {
+        width: 1px;
+        height: 1.1rem;
+        background: rgb(255 255 255 / 0.12);
+        margin: 0 0.15rem;
+      }
+      .dock .pick-win {
+        border-color: rgb(255 255 255 / 0.18);
+        color: #ddd;
+      }
+      .dock .pick-win.is-chosen {
+        border-color: #c9a0e8;
+        color: #e8d4ff;
+      }
+
+      /* Baseline: original 06e */
+      #s-base .mark {
+        color: oklch(0.82 0.015 95);
+        mix-blend-mode: soft-light;
+        -webkit-text-stroke: 1.1px oklch(0.12 0.02 250 / 0.55);
+      }
+
+      /* +1 hair: brighter fill, slightly firmer lip */
+      #s-plus1 .mark {
+        color: oklch(0.9 0.012 95);
+        mix-blend-mode: soft-light;
+        -webkit-text-stroke: 1.2px oklch(0.1 0.02 250 / 0.72);
+      }
+
+      /* +2: brighter + thin hard dark edge via layered shadow */
+      #s-plus2 .mark {
+        color: oklch(0.93 0.01 95);
+        mix-blend-mode: soft-light;
+        -webkit-text-stroke: 1.25px oklch(0.08 0.02 250 / 0.85);
+        text-shadow: 0 0 0.5px oklch(0.05 0.02 250 / 0.35);
+      }
+
+      /* +3: soft-light fill + opaque ink outline (pops more) */
+      #s-plus3 .mark {
+        color: oklch(0.94 0.01 95);
+        mix-blend-mode: soft-light;
+        -webkit-text-stroke: 1.35px oklch(0.12 0.02 250);
+      }
+
+      /* +1b alternate: keep 06e fill, add micro light kiss on top edge */
+      #s-plus1b .mark {
+        color: oklch(0.88 0.012 95);
+        mix-blend-mode: soft-light;
+        -webkit-text-stroke: 1.15px oklch(0.1 0.02 250 / 0.7);
+        text-shadow:
+          0 1px 0 rgb(0 0 0 / 0.22),
+          0 -1px 0 rgb(255 255 255 / 0.18);
+      }
+
+      @media (prefers-reduced-transparency: reduce) {
+        .dock {
+          backdrop-filter: none;
+          background: #161618;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <svg width="0" height="0" aria-hidden style="position: absolute">
+      <defs>
+        <filter
+          id="matte-concrete"
+          x="0%"
+          y="0%"
+          width="100%"
+          height="100%"
+          color-interpolation-filters="sRGB"
+        >
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.75"
+            numOctaves="4"
+            seed="7"
+            result="noise"
+          />
+          <feDiffuseLighting
+            in="noise"
+            lighting-color="#ffffff"
+            surfaceScale="1.4"
+            result="light"
+          >
+            <feDistantLight azimuth="135" elevation="48" />
+          </feDiffuseLighting>
+          <feComponentTransfer in="light">
+            <feFuncR type="linear" slope="0.85" intercept="0.05" />
+            <feFuncG type="linear" slope="0.85" intercept="0.05" />
+            <feFuncB type="linear" slope="0.85" intercept="0.05" />
+          </feComponentTransfer>
+        </filter>
+      </defs>
+    </svg>
+
+    <div class="meta">
+      <strong id="title">06e · baseline</strong>
+      <span id="desc">Your pick. Use ← → to step contrast up a hair.</span>
+    </div>
+    <div class="keys">← → · Enter to pick</div>
+
+    <section
+      class="slide is-on"
+      id="s-base"
+      data-title="06e · baseline"
+      data-desc="Exactly what you liked. Soft-light stamp + dark lip."
+    >
+      <div class="tex-matte"></div>
+      <div class="tex-grain"></div>
+      <div class="tex-vignette"></div>
+      <p class="mark">Safe<br />Somewhere</p>
+    </section>
+
+    <section
+      class="slide"
+      id="s-plus1"
+      data-title="06e · +1 hair"
+      data-desc="Brighter fill + slightly firmer stroke. The small bump."
+    >
+      <div class="tex-matte"></div>
+      <div class="tex-grain"></div>
+      <div class="tex-vignette"></div>
+      <p class="mark">Safe<br />Somewhere</p>
+    </section>
+
+    <section
+      class="slide"
+      id="s-plus1b"
+      data-title="06e · +1b micro edge"
+      data-desc="Same idea as +1, plus a tiny light/dark kiss on the edge."
+    >
+      <div class="tex-matte"></div>
+      <div class="tex-grain"></div>
+      <div class="tex-vignette"></div>
+      <p class="mark">Safe<br />Somewhere</p>
+    </section>
+
+    <section
+      class="slide"
+      id="s-plus2"
+      data-title="06e · +2"
+      data-desc="One more notch. Brighter body, stronger dark lip."
+    >
+      <div class="tex-matte"></div>
+      <div class="tex-grain"></div>
+      <div class="tex-vignette"></div>
+      <p class="mark">Safe<br />Somewhere</p>
+    </section>
+
+    <section
+      class="slide"
+      id="s-plus3"
+      data-title="06e · +3"
+      data-desc="Most contrast. Opaque ink outline. Stop before this if it feels loud."
+    >
+      <div class="tex-matte"></div>
+      <div class="tex-grain"></div>
+      <div class="tex-vignette"></div>
+      <p class="mark">Safe<br />Somewhere</p>
+    </section>
+
+    <nav class="dock" aria-label="Contrast steps">
+      <button type="button" data-go="s-base" class="is-on">baseline</button>
+      <button type="button" data-go="s-plus1">+1</button>
+      <button type="button" data-go="s-plus1b">+1b</button>
+      <button type="button" data-go="s-plus2">+2</button>
+      <button type="button" data-go="s-plus3">+3</button>
+      <span class="sep" aria-hidden></span>
+      <button type="button" class="pick-win" id="pickBtn">Pick this</button>
+    </nav>
+
+    <script>
+      const slides = [...document.querySelectorAll(".slide")];
+      const tabs = [...document.querySelectorAll("[data-go]")];
+      const title = document.getElementById("title");
+      const desc = document.getElementById("desc");
+      const pickBtn = document.getElementById("pickBtn");
+      let i = 0;
+      let chosen = null;
+
+      function show(index) {
+        i = (index + slides.length) % slides.length;
+        slides.forEach((s, n) => s.classList.toggle("is-on", n === i));
+        tabs.forEach((t) =>
+          t.classList.toggle("is-on", t.dataset.go === slides[i].id),
+        );
+        title.textContent = slides[i].dataset.title;
+        desc.textContent = slides[i].dataset.desc;
+        const id = slides[i].id.replace(/^s-/, "");
+        pickBtn.textContent = chosen === id ? "Picked ✓" : "Pick this";
+        pickBtn.classList.toggle("is-chosen", chosen === id);
+      }
+
+      tabs.forEach((t) => {
+        t.addEventListener("click", () => {
+          const idx = slides.findIndex((s) => s.id === t.dataset.go);
+          if (idx >= 0) show(idx);
+        });
+      });
+
+      pickBtn.addEventListener("click", () => {
+        chosen = slides[i].id.replace(/^s-/, "");
+        pickBtn.textContent = "Picked ✓";
+        pickBtn.classList.add("is-chosen");
+        title.textContent =
+          slides[i].dataset.title + '  ·  say “06e ' + chosen + '”';
+      });
+
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight" || e.key === " ") {
+          e.preventDefault();
+          show(i + 1);
+        } else if (e.key === "ArrowLeft") {
+          e.preventDefault();
+          show(i - 1);
+        } else if (e.key === "Enter") {
+          pickBtn.click();
+        }
+      });
+
+      // Start on +1 (the likely sweet spot)
+      show(1);
+    </script>
+  </body>
+</html>

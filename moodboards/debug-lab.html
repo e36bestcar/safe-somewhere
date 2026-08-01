@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Safe-Somewhere — debug lab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Six+Caps&family=Young+Serif&family=Libre+Barcode+39+Text&family=Host+Grotesk:wght@400;500;600&family=Kode+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: oklch(0.48 0.02 95);
+        --surface: oklch(0.54 0.022 95);
+        --ink: oklch(0.22 0.02 250);
+        --muted: oklch(0.4 0.02 250);
+        --primary: oklch(0.48 0.15 25);
+        --accent: oklch(0.45 0.06 230);
+        --chrome-a: #f4f0ea;
+        --chrome-b: #c4b8a8;
+        --chrome-c: #5a5248;
+        --chrome-d: #e8e2d8;
+        --chrome-e: #8a7e6e;
+        --panel: oklch(0.16 0.01 250);
+        --panel-ink: oklch(0.9 0.01 95);
+        --panel-muted: oklch(0.65 0.01 95);
+      }
+
+      * { box-sizing: border-box; }
+      html, body { height: 100%; margin: 0; }
+      body {
+        font-family: "Host Grotesk", system-ui, sans-serif;
+        color: var(--panel-ink);
+        background: var(--panel);
+        display: grid;
+        grid-template-columns: minmax(260px, 320px) 1fr;
+        min-height: 100%;
+      }
+
+      /* ——— Debug panel ——— */
+      aside {
+        border-right: 1px solid rgb(255 255 255 / 0.08);
+        padding: 1rem;
+        overflow: auto;
+        max-height: 100vh;
+        position: sticky;
+        top: 0;
+      }
+      aside h1 {
+        margin: 0 0 0.25rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+      aside .sub {
+        margin: 0 0 1.1rem;
+        font-size: 0.7rem;
+        color: var(--panel-muted);
+        line-height: 1.4;
+      }
+      .group { margin-bottom: 1.15rem; }
+      .group h2 {
+        margin: 0 0 0.45rem;
+        font-size: 0.58rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--panel-muted);
+        font-weight: 600;
+      }
+      .opts {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+      }
+      .opts label {
+        display: flex;
+        gap: 0.45rem;
+        align-items: flex-start;
+        padding: 0.4rem 0.5rem;
+        border: 1px solid rgb(255 255 255 / 0.08);
+        border-radius: 0.4rem;
+        cursor: pointer;
+        font-size: 0.72rem;
+        line-height: 1.3;
+      }
+      .opts label:hover { border-color: rgb(255 255 255 / 0.2); }
+      .opts label.is-on {
+        border-color: var(--primary);
+        background: rgb(255 255 255 / 0.04);
+      }
+      .opts input { margin-top: 0.15rem; accent-color: oklch(0.55 0.14 25); }
+      .opts small {
+        display: block;
+        color: var(--panel-muted);
+        font-size: 0.62rem;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.35rem;
+      }
+      select, button.ghost {
+        width: 100%;
+        background: #1a1a1a;
+        color: var(--panel-ink);
+        border: 1px solid rgb(255 255 255 / 0.12);
+        border-radius: 0.35rem;
+        padding: 0.4rem 0.45rem;
+        font: inherit;
+        font-size: 0.72rem;
+      }
+      button.ghost { cursor: pointer; }
+      button.ghost:hover { border-color: rgb(255 255 255 / 0.3); }
+      .swatch-row {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 3px;
+        margin-top: 0.45rem;
+      }
+      .swatch-row i {
+        aspect-ratio: 1;
+        border-radius: 2px;
+        border: 1px solid rgb(255 255 255 / 0.1);
+      }
+      .hint {
+        font-size: 0.62rem;
+        color: var(--panel-muted);
+        line-height: 1.4;
+        margin-top: 0.75rem;
+      }
+      code {
+        font-family: "Kode Mono", monospace;
+        font-size: 0.58rem;
+      }
+
+      /* ——— Stage ——— */
+      main {
+        position: relative;
+        min-height: 100vh;
+        overflow: hidden;
+        color: var(--ink);
+      }
+
+      .stage {
+        position: absolute;
+        inset: 0;
+        background: var(--bg);
+      }
+
+      /* Matte texture layers */
+      .tex-grain,
+      .tex-matte,
+      .tex-vignette,
+      .tex-photo {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+
+      .tex-photo {
+        background-size: cover;
+        background-position: center;
+        opacity: 0;
+        mix-blend-mode: multiply;
+      }
+      [data-matte="photo"] .tex-photo {
+        opacity: 0.55;
+        /* verified Unsplash — wet concrete / asphalt feel */
+        background-image: url("https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1800&q=70");
+      }
+      [data-matte="paper"] .tex-photo {
+        opacity: 0.4;
+        background-image: url("https://images.unsplash.com/photo-1554189097-ffe88e998a2b?auto=format&fit=crop&w=1800&q=70");
+        mix-blend-mode: soft-light;
+      }
+
+      .tex-matte {
+        opacity: 0.85;
+        filter: url(#matte-concrete);
+      }
+      [data-matte="off"] .tex-matte { display: none; }
+      [data-matte="grain"] .tex-matte { filter: url(#matte-grain); opacity: 0.7; }
+      [data-matte="paper"] .tex-matte { filter: url(#matte-paper); opacity: 0.55; }
+      [data-matte="photo"] .tex-matte { filter: url(#matte-grain); opacity: 0.35; }
+
+      .tex-grain {
+        opacity: 0.35;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        background-size: 220px;
+        mix-blend-mode: soft-light;
+      }
+      [data-matte="off"] .tex-grain { opacity: 0.12; }
+
+      .tex-vignette {
+        background: radial-gradient(
+          120% 90% at 50% 40%,
+          transparent 20%,
+          rgb(0 0 0 / 0.35) 100%
+        );
+        mix-blend-mode: multiply;
+      }
+
+      .content {
+        position: relative;
+        z-index: 2;
+        height: 100%;
+        min-height: 100vh;
+        padding: clamp(1.5rem, 4vw, 3rem);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .edge {
+        font-family: var(--font-edge), "Kode Mono", monospace;
+        font-size: clamp(0.65rem, 1.2vw, 0.8rem);
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--muted);
+        opacity: 0.7;
+      }
+      .edge.barcode {
+        font-family: "Libre Barcode 39 Text", cursive;
+        font-size: clamp(1.4rem, 3vw, 2rem);
+        letter-spacing: 0;
+        text-transform: none;
+        line-height: 1;
+      }
+
+      .edges {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      .hero {
+        max-width: 18ch;
+        margin: auto 0;
+      }
+
+      .wordmark-wrap {
+        position: relative;
+        display: inline-block;
+      }
+
+      /* Soft contact shadow on the matte — text feels lifted */
+      .wordmark-cast {
+        position: absolute;
+        left: 4%;
+        right: 6%;
+        bottom: -0.2em;
+        height: 0.7em;
+        pointer-events: none;
+        z-index: 0;
+        background: radial-gradient(
+          55% 70% at 50% 40%,
+          rgb(0 0 0 / 0.5) 0%,
+          rgb(0 0 0 / 0.22) 42%,
+          transparent 72%
+        );
+        filter: blur(14px);
+        transform: scaleY(0.45) translateY(0.15em);
+        opacity: 0.9;
+      }
+
+      [data-cast="off"] .wordmark-cast {
+        display: none;
+      }
+
+      .wordmark {
+        position: relative;
+        z-index: 1;
+        margin: 0;
+        font-family: var(--font-word), "Six Caps", sans-serif;
+        font-size: clamp(3.5rem, 12vw, 7.5rem);
+        line-height: 0.88;
+        letter-spacing: var(--track, 0.04em);
+        font-weight: 400;
+      }
+
+      .wordmark.is-elevated {
+        /* layered elevation — set per chrome class below */
+      }
+
+      /* Chrome modes */
+      .chrome-grad {
+        background-image: linear-gradient(
+          175deg,
+          var(--chrome-a) 0%,
+          var(--chrome-b) 18%,
+          var(--chrome-c) 42%,
+          var(--chrome-d) 58%,
+          var(--chrome-e) 78%,
+          var(--chrome-b) 100%
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        filter: drop-shadow(0 1px 0 rgb(0 0 0 / 0.35));
+      }
+      .chrome-grad.is-elevated {
+        filter:
+          drop-shadow(0 1px 0 rgb(0 0 0 / 0.35))
+          drop-shadow(0 2px 2px rgb(0 0 0 / 0.28))
+          drop-shadow(0 10px 14px rgb(0 0 0 / 0.32))
+          drop-shadow(0 28px 36px rgb(0 0 0 / 0.38))
+          drop-shadow(0 48px 60px rgb(0 0 0 / 0.22));
+      }
+
+      .chrome-svg {
+        color: var(--chrome-b);
+        filter: url(#chrome-specular);
+      }
+      .chrome-svg.is-elevated {
+        filter:
+          url(#chrome-specular)
+          drop-shadow(0 2px 2px rgb(0 0 0 / 0.28))
+          drop-shadow(0 10px 14px rgb(0 0 0 / 0.32))
+          drop-shadow(0 28px 36px rgb(0 0 0 / 0.38))
+          drop-shadow(0 48px 60px rgb(0 0 0 / 0.22));
+      }
+
+      .chrome-brushed {
+        background-image:
+          repeating-linear-gradient(
+            90deg,
+            transparent 0 1px,
+            rgb(255 255 255 / 0.04) 1px 2px
+          ),
+          linear-gradient(
+            175deg,
+            var(--chrome-a) 0%,
+            var(--chrome-b) 20%,
+            var(--chrome-c) 45%,
+            var(--chrome-d) 62%,
+            var(--chrome-e) 100%
+          );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        filter: url(#chrome-brushed);
+      }
+      .chrome-brushed.is-elevated {
+        filter:
+          url(#chrome-brushed)
+          drop-shadow(0 2px 2px rgb(0 0 0 / 0.28))
+          drop-shadow(0 10px 14px rgb(0 0 0 / 0.32))
+          drop-shadow(0 28px 36px rgb(0 0 0 / 0.38))
+          drop-shadow(0 48px 60px rgb(0 0 0 / 0.22));
+      }
+
+      .chrome-full {
+        background-image: linear-gradient(
+          180deg,
+          #0b1020 0%,
+          #34304b 12%,
+          #c3b9d5 24%,
+          #ffffff 32%,
+          #5a6cae 46%,
+          #ffffff 54%,
+          #e8ecff 82%,
+          #c3b9d5 90%,
+          #211c35 100%
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        filter: url(#chrome-rim);
+      }
+      .chrome-full.is-elevated {
+        filter:
+          url(#chrome-rim)
+          drop-shadow(0 2px 2px rgb(0 0 0 / 0.28))
+          drop-shadow(0 10px 14px rgb(0 0 0 / 0.32))
+          drop-shadow(0 28px 36px rgb(0 0 0 / 0.38))
+          drop-shadow(0 48px 60px rgb(0 0 0 / 0.22));
+      }
+
+      .chrome-flat {
+        color: var(--ink);
+      }
+      .chrome-flat.is-elevated {
+        filter:
+          drop-shadow(0 2px 2px rgb(0 0 0 / 0.28))
+          drop-shadow(0 10px 14px rgb(0 0 0 / 0.32))
+          drop-shadow(0 28px 36px rgb(0 0 0 / 0.38));
+      }
+
+      .line {
+        margin: 1.25rem 0 0;
+        max-width: 28ch;
+        font-family: var(--font-body), "Young Serif", serif;
+        font-size: clamp(1rem, 2.2vw, 1.25rem);
+        line-height: 1.45;
+        color: var(--muted);
+        font-weight: 400;
+      }
+
+      .socials {
+        display: flex;
+        gap: 1.25rem;
+        flex-wrap: wrap;
+      }
+      .socials a {
+        color: var(--muted);
+        text-decoration: none;
+        font-family: var(--font-edge), "Kode Mono", monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.08em;
+      }
+      .socials a:hover { color: var(--primary); }
+
+      @media (max-width: 860px) {
+        body { grid-template-columns: 1fr; }
+        aside {
+          position: relative;
+          max-height: none;
+          border-right: 0;
+          border-bottom: 1px solid rgb(255 255 255 / 0.08);
+        }
+        main { min-height: 70vh; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .card { transition: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- SVG material filters (Codrops / MDN / chrome text patterns) -->
+    <svg width="0" height="0" aria-hidden="true" style="position: absolute">
+      <defs>
+        <!-- Matte concrete: noise + diffuse light -->
+        <filter id="matte-concrete" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="4" seed="7" result="noise" />
+          <feDiffuseLighting in="noise" lighting-color="#ffffff" surfaceScale="1.4" result="light">
+            <feDistantLight azimuth="135" elevation="48" />
+          </feDiffuseLighting>
+          <feComponentTransfer in="light" result="matte">
+            <feFuncR type="linear" slope="0.85" intercept="0.05" />
+            <feFuncG type="linear" slope="0.85" intercept="0.05" />
+            <feFuncB type="linear" slope="0.85" intercept="0.05" />
+          </feComponentTransfer>
+        </filter>
+
+        <filter id="matte-grain" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="3" seed="3" result="noise" />
+          <feColorMatrix type="saturate" values="0" in="noise" result="mono" />
+          <feComponentTransfer in="mono">
+            <feFuncA type="linear" slope="0.55" />
+          </feComponentTransfer>
+        </filter>
+
+        <filter id="matte-paper" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="5" seed="11" result="noise" />
+          <feDiffuseLighting in="noise" lighting-color="#f5f0e8" surfaceScale="2.2" result="paper">
+            <feDistantLight azimuth="45" elevation="60" />
+          </feDiffuseLighting>
+        </filter>
+
+        <!-- Chrome specular rim (Takumi / codingdude-style) -->
+        <filter id="chrome-specular" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="1.2" result="blur" />
+          <feSpecularLighting in="blur" surfaceScale="2.2" specularConstant="1.1" specularExponent="28" lighting-color="#ffffff" result="spec">
+            <fePointLight id="chromeLight" x="200" y="-40" z="180" />
+          </feSpecularLighting>
+          <feComposite in="spec" in2="SourceAlpha" operator="in" result="rim" />
+          <feComposite in="SourceGraphic" in2="rim" operator="arithmetic" k1="0" k2="1" k3="1.2" k4="0" />
+        </filter>
+
+        <filter id="chrome-rim" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+          <feGaussianBlur stdDeviation="1.4" in="SourceGraphic" result="blur" />
+          <feSpecularLighting surfaceScale="1.6" specularConstant="0.95" specularExponent="40" lighting-color="#ffffff" in="blur" result="spec">
+            <fePointLight id="chromeLight2" x="600" y="-60" z="900" />
+          </feSpecularLighting>
+          <feComposite operator="in" in="spec" in2="SourceAlpha" result="rim" />
+          <feMerge>
+            <feMergeNode in="SourceGraphic" />
+            <feMergeNode in="rim" />
+          </feMerge>
+        </filter>
+
+        <!-- Brushed metal via anisotropic turbulence -->
+        <filter id="chrome-brushed" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency="0.01 0.85" numOctaves="4" seed="2" result="brush" />
+          <feSpecularLighting in="brush" surfaceScale="8" specularConstant="1.15" specularExponent="22" lighting-color="#ffffff" result="spec">
+            <feDistantLight azimuth="235" elevation="50" />
+          </feSpecularLighting>
+          <feComposite in="spec" in2="SourceGraphic" operator="in" result="specOut" />
+          <feComposite in="SourceGraphic" in2="specOut" operator="arithmetic" k1="0" k2="1" k3="0.85" k4="0" />
+        </filter>
+      </defs>
+    </svg>
+
+    <aside>
+      <h1>Safe-Somewhere · debug lab</h1>
+      <p class="sub">
+        Live switcher for palettes + type roles + materials. Not the site —
+        a sandbox. Move mouse over stage to shift chrome light.
+      </p>
+
+      <div class="group">
+        <h2>Palette</h2>
+        <div class="opts" id="paletteOpts"></div>
+        <div class="swatch-row" id="swatches"></div>
+      </div>
+
+      <div class="group">
+        <h2>Wordmark font</h2>
+        <select id="fontWord"></select>
+      </div>
+
+      <div class="group">
+        <h2>Body / line font</h2>
+        <select id="fontBody"></select>
+      </div>
+
+      <div class="group">
+        <h2>Edge / label font</h2>
+        <select id="fontEdge"></select>
+      </div>
+
+      <div class="group">
+        <h2>Matte texture</h2>
+        <div class="opts" id="matteOpts"></div>
+      </div>
+
+      <div class="group">
+        <h2>Chrome text</h2>
+        <div class="opts" id="chromeOpts"></div>
+      </div>
+
+      <div class="group">
+        <h2>Hover cast shadow</h2>
+        <div class="opts" id="castOpts"></div>
+      </div>
+
+      <div class="group">
+        <h2>Quick</h2>
+        <div class="row">
+          <button type="button" class="ghost" id="btnLocked">Apply locked</button>
+          <button type="button" class="ghost" id="btnCopy">Copy state</button>
+        </div>
+      </div>
+
+      <p class="hint">
+        Materials use SVG <code>feTurbulence</code> + <code>feSpecularLighting</code>
+        (Codrops / MDN chrome patterns) — no npm yet. Photo matte pulls Unsplash
+        concrete/paper. Next step if needed: Three.js mesh text / env map.
+      </p>
+    </aside>
+
+    <main>
+      <div class="stage" id="stage" data-matte="concrete">
+        <div class="tex-photo" aria-hidden="true"></div>
+        <div class="tex-matte" aria-hidden="true"></div>
+        <div class="tex-grain" aria-hidden="true"></div>
+        <div class="tex-vignette" aria-hidden="true"></div>
+
+        <div class="content">
+          <div class="edges">
+            <span class="edge" id="edgeTL">SS-015</span>
+            <span class="edge barcode" id="edgeTR">SAFE</span>
+          </div>
+
+          <div class="hero">
+            <div class="wordmark-wrap">
+              <div class="wordmark-cast" aria-hidden="true"></div>
+              <h1 class="wordmark chrome-full is-elevated" id="wordmark">Safe<br />Somewhere</h1>
+            </div>
+            <p class="line" id="line">
+              A quiet frequency after the city goes soft.
+            </p>
+          </div>
+
+          <div class="edges" style="align-items: flex-end">
+            <div class="socials">
+              <a href="https://instagram.com/safe.somewhere" target="_blank" rel="noreferrer">ig · safe.somewhere</a>
+              <a href="https://www.tiktok.com/@safesomewhere" target="_blank" rel="noreferrer">tt · @safesomewhere</a>
+              <a href="https://www.youtube.com/@safesomewhere" target="_blank" rel="noreferrer">yt · safesomewhere</a>
+            </div>
+            <span class="edge" id="edgeBR">somewhere</span>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      const palettes = [
+        {
+          id: "15",
+          name: "15 · Satellite dish ★",
+          bg: "oklch(0.48 0.02 95)",
+          surface: "oklch(0.54 0.022 95)",
+          ink: "oklch(0.22 0.02 250)",
+          muted: "oklch(0.4 0.02 250)",
+          primary: "oklch(0.48 0.15 25)",
+          accent: "oklch(0.45 0.06 230)",
+          chrome: ["#f5efe6", "#c9b8a0", "#4a4036", "#ebe3d6", "#8a7460"],
+        },
+        {
+          id: "19",
+          name: "19 · Sulfur storm",
+          bg: "oklch(0.4 0.025 290)",
+          surface: "oklch(0.46 0.03 290)",
+          ink: "oklch(0.9 0.03 100)",
+          muted: "oklch(0.72 0.03 100)",
+          primary: "oklch(0.78 0.14 100)",
+          accent: "oklch(0.5 0.08 290)",
+          chrome: ["#f5f0c8", "#d4c84a", "#4a4520", "#efe9a8", "#8a8230"],
+        },
+        {
+          id: "18",
+          name: "18 · Tobacco & ice",
+          bg: "oklch(0.36 0.04 60)",
+          surface: "oklch(0.42 0.045 60)",
+          ink: "oklch(0.88 0.04 220)",
+          muted: "oklch(0.7 0.04 220)",
+          primary: "oklch(0.72 0.08 230)",
+          accent: "oklch(0.55 0.1 45)",
+          chrome: ["#e8f2f8", "#9bb8c9", "#2a3a48", "#d0e4ee", "#5a7a8a"],
+        },
+        {
+          id: "12",
+          name: "12 · Arctic mud",
+          bg: "oklch(0.37 0.02 80)",
+          surface: "oklch(0.43 0.025 80)",
+          ink: "oklch(0.9 0.02 200)",
+          muted: "oklch(0.72 0.02 200)",
+          primary: "oklch(0.62 0.1 175)",
+          accent: "oklch(0.55 0.08 30)",
+          chrome: ["#e4f2ea", "#7aazaa".replace("az", "b8"), "#1e3a32", "#c8e0d4", "#3d6a58"],
+        },
+        {
+          id: "335",
+          name: "BMW · Estoril 335",
+          bg: "oklch(0.34 0.08 255)",
+          surface: "oklch(0.4 0.07 255)",
+          ink: "oklch(0.9 0.02 250)",
+          muted: "oklch(0.72 0.03 250)",
+          primary: "oklch(0.52 0.14 255)",
+          accent: "oklch(0.72 0.03 95)",
+          chrome: ["#e8eef8", "#6a8ec4", "#1a2a48", "#c8d8f0", "#3a5080"],
+        },
+        {
+          id: "299",
+          name: "BMW · Techno Violet 299",
+          bg: "oklch(0.32 0.09 310)",
+          surface: "oklch(0.38 0.08 310)",
+          ink: "oklch(0.9 0.03 100)",
+          muted: "oklch(0.72 0.04 100)",
+          primary: "oklch(0.48 0.16 310)",
+          accent: "oklch(0.7 0.12 95)",
+          chrome: ["#f0e6f8", "#8a4ab0", "#2a1040", "#dcc8ec", "#5a2878"],
+        },
+        {
+          id: "305",
+          name: "BMW · Petrol Mica 305",
+          bg: "oklch(0.29 0.035 170)",
+          surface: "oklch(0.35 0.04 170)",
+          ink: "oklch(0.86 0.04 160)",
+          muted: "oklch(0.68 0.04 160)",
+          primary: "oklch(0.42 0.07 175)",
+          accent: "oklch(0.6 0.08 40)",
+          chrome: ["#e0ece4", "#5a7a68", "#142820", "#c0d4c8", "#2a4838"],
+        },
+        {
+          id: "348",
+          name: "BMW · Aubergine 348",
+          bg: "oklch(0.3 0.06 350)",
+          surface: "oklch(0.36 0.06 350)",
+          ink: "oklch(0.88 0.03 40)",
+          muted: "oklch(0.7 0.03 40)",
+          primary: "oklch(0.42 0.1 355)",
+          accent: "oklch(0.65 0.06 85)",
+          chrome: ["#f0e4e8", "#8a4a5a", "#2a1018", "#e0c8d0", "#5a2838"],
+        },
+      ];
+
+      // fix arctic mud chrome typo
+      palettes[3].chrome = ["#e4f2ea", "#7ab8aa", "#1e3a32", "#c8e0d4", "#3d6a58"];
+
+      const fonts = {
+        word: [
+          { id: "bebas", family: "Bebas Neue", track: "0.02em" },
+          { id: "six", family: "Six Caps", track: "0.04em" },
+          { id: "host", family: "Host Grotesk", track: "-0.03em" },
+        ],
+        body: [
+          { id: "young", family: "Young Serif" },
+          { id: "host", family: "Host Grotesk" },
+          { id: "kode", family: "Kode Mono" },
+        ],
+        edge: [
+          { id: "six", family: "Six Caps" },
+          { id: "kode", family: "Kode Mono" },
+          { id: "barcode", family: "Libre Barcode 39 Text" },
+          { id: "bebas", family: "Bebas Neue" },
+        ],
+      };
+
+      const mattes = [
+        { id: "concrete", name: "SVG concrete (diffuse)" },
+        { id: "grain", name: "Fine grain only" },
+        { id: "paper", name: "Paper + photo soft-light" },
+        { id: "photo", name: "Photo concrete + grain" },
+        { id: "off", name: "Flat (no texture)" },
+      ];
+
+      const chromes = [
+        { id: "grad", name: "Gradient clip", cls: "chrome-grad" },
+        { id: "full", name: "Hard-band chrome + rim", cls: "chrome-full" },
+        { id: "brushed", name: "Brushed metal SVG", cls: "chrome-brushed" },
+        { id: "svg", name: "Specular only (mouse light)", cls: "chrome-svg" },
+        { id: "flat", name: "Flat ink (no chrome)", cls: "chrome-flat" },
+      ];
+
+      /* LOCKED 2026-07-29 */
+      const LOCKED = {
+        palette: "15",
+        word: "six",
+        body: "host",
+        edge: "six",
+        matte: "concrete",
+        chrome: "full",
+        cast: "on",
+      };
+
+      const state = { ...LOCKED };
+
+      const root = document.documentElement;
+      const stage = document.getElementById("stage");
+      const wordmark = document.getElementById("wordmark");
+
+      function applyPalette(id) {
+        const p = palettes.find((x) => x.id === id) || palettes[0];
+        state.palette = p.id;
+        root.style.setProperty("--bg", p.bg);
+        root.style.setProperty("--surface", p.surface);
+        root.style.setProperty("--ink", p.ink);
+        root.style.setProperty("--muted", p.muted);
+        root.style.setProperty("--primary", p.primary);
+        root.style.setProperty("--accent", p.accent);
+        const [a, b, c, d, e] = p.chrome;
+        root.style.setProperty("--chrome-a", a);
+        root.style.setProperty("--chrome-b", b);
+        root.style.setProperty("--chrome-c", c);
+        root.style.setProperty("--chrome-d", d);
+        root.style.setProperty("--chrome-e", e);
+        document.getElementById("swatches").innerHTML = [p.bg, p.surface, p.ink, p.primary, p.accent]
+          .map((c) => `<i style="background:${c}"></i>`)
+          .join("");
+        document.querySelectorAll("#paletteOpts label").forEach((el) => {
+          el.classList.toggle("is-on", el.dataset.id === p.id);
+          el.querySelector("input").checked = el.dataset.id === p.id;
+        });
+      }
+
+      function applyFonts() {
+        const w = fonts.word.find((x) => x.id === state.word);
+        const b = fonts.body.find((x) => x.id === state.body);
+        const e = fonts.edge.find((x) => x.id === state.edge);
+        root.style.setProperty("--font-word", `"${w.family}"`);
+        root.style.setProperty("--font-body", `"${b.family}"`);
+        root.style.setProperty("--font-edge", `"${e.family}"`);
+        root.style.setProperty("--track", w.track || "0.02em");
+        document.getElementById("fontWord").value = state.word;
+        document.getElementById("fontBody").value = state.body;
+        document.getElementById("fontEdge").value = state.edge;
+        // barcode mode on TR when edge is barcode
+        document.getElementById("edgeTR").classList.toggle("barcode", state.edge === "barcode" || state.edge === "six");
+        if (state.edge === "barcode") {
+          document.getElementById("edgeTR").classList.add("barcode");
+        }
+      }
+
+      function applyMatte() {
+        stage.dataset.matte = state.matte;
+        document.querySelectorAll("#matteOpts label").forEach((el) => {
+          el.classList.toggle("is-on", el.dataset.id === state.matte);
+          el.querySelector("input").checked = el.dataset.id === state.matte;
+        });
+      }
+
+      function applyChrome() {
+        const c = chromes.find((x) => x.id === state.chrome);
+        wordmark.className = `wordmark ${c.cls} ${state.cast === "on" ? "is-elevated" : ""}`;
+        document.querySelectorAll("#chromeOpts label").forEach((el) => {
+          el.classList.toggle("is-on", el.dataset.id === state.chrome);
+          el.querySelector("input").checked = el.dataset.id === state.chrome;
+        });
+      }
+
+      function applyCast() {
+        stage.dataset.cast = state.cast;
+        wordmark.classList.toggle("is-elevated", state.cast === "on");
+        document.querySelectorAll("#castOpts label").forEach((el) => {
+          el.classList.toggle("is-on", el.dataset.id === state.cast);
+          el.querySelector("input").checked = el.dataset.id === state.cast;
+        });
+      }
+
+      function buildOpts(container, items, key) {
+        container.innerHTML = items
+          .map(
+            (item) => `<label data-id="${item.id}">
+              <input type="radio" name="${key}" value="${item.id}" />
+              <span>${item.name}${item.name ? "" : ""}<small>${item.id}</small></span>
+            </label>`
+          )
+          .join("");
+        // fix labels for matte/chrome which use name
+        container.querySelectorAll("label").forEach((lab) => {
+          const item = items.find((x) => x.id === lab.dataset.id);
+          lab.querySelector("span").innerHTML = `${item.name}<small>${item.id}</small>`;
+        });
+        container.addEventListener("change", (e) => {
+          const input = e.target.closest("input");
+          if (!input) return;
+          state[key] = input.value;
+          if (key === "palette") applyPalette(state.palette);
+          if (key === "matte") applyMatte();
+          if (key === "chrome") applyChrome();
+        });
+      }
+
+      // Palette radio with nicer labels
+      document.getElementById("paletteOpts").innerHTML = palettes
+        .map(
+          (p) => `<label data-id="${p.id}">
+            <input type="radio" name="palette" value="${p.id}" />
+            <span>${p.name}<small>${p.id}</small></span>
+          </label>`
+        )
+        .join("");
+      document.getElementById("paletteOpts").addEventListener("change", (e) => {
+        if (e.target.name !== "palette") return;
+        applyPalette(e.target.value);
+      });
+
+      const casts = [
+        { id: "on", name: "Hover cast (locked)" },
+        { id: "off", name: "No cast shadow" },
+      ];
+
+      buildOpts(document.getElementById("matteOpts"), mattes, "matte");
+      buildOpts(document.getElementById("chromeOpts"), chromes, "chrome");
+      buildOpts(document.getElementById("castOpts"), casts, "cast");
+
+      // extend buildOpts handler for cast — patch via direct listener
+      document.getElementById("castOpts").addEventListener("change", (e) => {
+        if (e.target.name !== "cast") return;
+        state.cast = e.target.value;
+        applyCast();
+        applyChrome();
+      });
+
+      function fillSelect(sel, list) {
+        sel.innerHTML = list.map((f) => `<option value="${f.id}">${f.family}</option>`).join("");
+      }
+      fillSelect(document.getElementById("fontWord"), fonts.word);
+      fillSelect(document.getElementById("fontBody"), fonts.body);
+      fillSelect(document.getElementById("fontEdge"), fonts.edge);
+
+      document.getElementById("fontWord").addEventListener("change", (e) => {
+        state.word = e.target.value;
+        applyFonts();
+      });
+      document.getElementById("fontBody").addEventListener("change", (e) => {
+        state.body = e.target.value;
+        applyFonts();
+      });
+      document.getElementById("fontEdge").addEventListener("change", (e) => {
+        state.edge = e.target.value;
+        applyFonts();
+      });
+
+      document.getElementById("btnLocked").addEventListener("click", () => {
+        Object.assign(state, LOCKED);
+        applyPalette(state.palette);
+        applyFonts();
+        applyMatte();
+        applyChrome();
+        applyCast();
+        document.querySelector(".sub").textContent = "Locked preset applied";
+      });
+
+      document.getElementById("btnCopy").addEventListener("click", async () => {
+        const text = `Safe-Somewhere debug state
+palette: ${state.palette}
+wordmark: ${fonts.word.find((x) => x.id === state.word).family}
+body: ${fonts.body.find((x) => x.id === state.body).family}
+edge: ${fonts.edge.find((x) => x.id === state.edge).family}
+matte: ${state.matte}
+chrome: ${state.chrome}
+cast: ${state.cast}`;
+        await navigator.clipboard.writeText(text);
+        document.querySelector(".sub").textContent = "State copied — paste back in chat";
+      });
+
+      // Mouse-follow specular light
+      stage.addEventListener("pointermove", (e) => {
+        const r = stage.getBoundingClientRect();
+        const x = ((e.clientX - r.left) / r.width) * 800;
+        const y = ((e.clientY - r.top) / r.height) * 400 - 80;
+        document.getElementById("chromeLight").setAttribute("x", String(x));
+        document.getElementById("chromeLight").setAttribute("y", String(y));
+        document.getElementById("chromeLight2").setAttribute("x", String(x + 200));
+        document.getElementById("chromeLight2").setAttribute("y", String(y));
+      });
+
+      applyPalette(state.palette);
+      applyFonts();
+      applyMatte();
+      applyChrome();
+      applyCast();
+    </script>
+  </body>
+</html>
